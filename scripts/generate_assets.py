@@ -481,23 +481,26 @@ def create_credits3():
 
     # Credits text
     lines = [
-        ("Développement initial & modélisation :", "Rémi Fache (2014-2015)"),
-        ("Mise à jour, modernisation & portabilité :", "Version 1.5 (2026)"),
+        ("Projet :", "Créé par fromtherags en 2014"),
         ("Technologies :", "C++17, Qt Widgets, SDL 1.2, CMake"),
         ("Systèmes compatibles :", "GNU/Linux, Microsoft Windows"),
         ("Ressources graphiques :", "100% Libres de droits (CC0 / Open Source)"),
         ("Polices de caractères :", "Droid Sans (Apache 2.0) / Patrick Hand (OFL)"),
     ]
 
-    cy = 190
+    cy = 200
     for title, val in lines:
-        draw.text((w//2 - 280, cy), title, font=get_font(15, bold=True), fill=(200, 220, 240, 255))
-        draw.text((w//2 + 70, cy), val, font=get_font(15), fill=(255, 255, 255, 255))
-        cy += 40
+        draw.text((w//2 - 260, cy), title, font=get_font(15, bold=True), fill=(200, 220, 240, 255))
+        draw.text((w//2 + 30, cy), val, font=get_font(15), fill=(255, 255, 255, 255))
+        cy += 42
 
     # Footer banner
-    draw.rounded_rectangle([w//2 - 200, 460, w//2 + 200, 520], radius=10, fill=(30, 55, 90, 255), outline=(70, 140, 220, 255), width=2)
-    draw.text((w//2 - 120, 480), "© Rémi Fache - Projet TPE", font=get_font(18, bold=True), fill=(255, 255, 255, 255))
+    draw.rounded_rectangle([w//2 - 220, 460, w//2 + 220, 520], radius=10, fill=(30, 55, 90, 255), outline=(70, 140, 220, 255), width=2)
+    footer_text = "Créé par fromtherags en 2014"
+    fnt_footer = get_font(18, bold=True)
+    bbox_footer = fnt_footer.getbbox(footer_text)
+    fw = bbox_footer[2] - bbox_footer[0]
+    draw.text((w//2 - fw//2, 480), footer_text, font=fnt_footer, fill=(255, 255, 255, 255))
 
     im.save(os.path.join(ASSET_DIR, "credits3.png"))
     # Also save as credits.png for SDL

@@ -130,6 +130,6 @@ L'installeur `tpe-setup-v1.5.exe` sera généré dans le dossier `dist/`.
 
 ## Licence
 
-- Code source : [MIT License](LICENSE) (© 2015-2026 Rémi Fache)
+- Code source : [MIT License](LICENSE) (Créé par fromtherags en 2014)
 - Polices de caractères : [SIL Open Font License 1.1](OFL.txt) (Droid Sans, Patrick Hand)
 - Graphismes et illustrations : 100% Libres de droits (CC0 / Domaine Public)
