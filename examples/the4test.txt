@@ -1,0 +1,21 @@
+
+ Énergie éolienne : 
+
+ Nombre d'éoliennes : 4 
+ Diamètre du rotor (en m) : 4 
+ Vitesse moyenne du vent (en m/s) : 4.0 
+ Temps de fonctionnement (en heures) : 4 
+
+ Énergie solaire : 
+
+ Surface du champ photovoltaïque (en m²) : 4.00 
+ Rendement du module (en %) : 4 
+ Ensoleillement/rayonnement sur la surface inclinée en Kwh/m² : 4 
+ Coefficient de perte : 0.04 
+
+ Énergie nucléaire : 
+
+ Puissance moyenne des réacteurs (en MW) : 4 
+ Nombre de réacteurs : 4 
+
+ Production annuelle : 119.218 GWh 
