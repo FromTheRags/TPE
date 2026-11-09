@@ -28,12 +28,29 @@ void launchSdlPresentation()
         return;
     }
 
-    const int SCREEN_W = 1040;
-    const int SCREEN_H = 832;
+    const int BASE_W = 1040;
+    const int BASE_H = 832;
 
-    SDL_WM_SetCaption("TPE - Presentation Interactive (SDL 1.2)", "TPE");
+    SDL_WM_SetCaption("TPE - Presentation Interactive (SDL 1.2) [F11: Plein ecran]", "TPE");
 
-    SDL_Surface *ecran = SDL_SetVideoMode(SCREEN_W, SCREEN_H, 32, SDL_HWSURFACE | SDL_DOUBLEBUF);
+    bool isFullScreen = false;
+
+    auto setVideo = [&](bool fs) -> SDL_Surface* {
+        Uint32 flags = SDL_HWSURFACE | SDL_DOUBLEBUF;
+        int w = BASE_W;
+        int h = BASE_H;
+        if (fs) {
+            flags |= SDL_FULLSCREEN;
+            const SDL_VideoInfo *info = SDL_GetVideoInfo();
+            if (info && info->current_w > 0 && info->current_h > 0) {
+                w = info->current_w;
+                h = info->current_h;
+            }
+        }
+        return SDL_SetVideoMode(w, h, 32, flags);
+    };
+
+    SDL_Surface *ecran = setVideo(isFullScreen);
     if (!ecran) {
         std::fprintf(stderr, "Erreur SDL_SetVideoMode: %s\n", SDL_GetError());
         SDL_QuitSubSystem(SDL_INIT_VIDEO);
@@ -75,10 +92,16 @@ void launchSdlPresentation()
     bool running = true;
     while (running && state != QUIT) {
         if (state == MENU) {
+            // Fill background with uniform light sky color matching FOND edge
+            SDL_FillRect(ecran, nullptr, SDL_MapRGB(ecran->format, 246, 249, 252));
+
+            int ox = 0;
+            int oy = 0;
             if (menuSurface) {
-                SDL_BlitSurface(menuSurface, nullptr, ecran, nullptr);
-            } else {
-                SDL_FillRect(ecran, nullptr, SDL_MapRGB(ecran->format, 30, 40, 60));
+                ox = (ecran->w - menuSurface->w) / 2;
+                oy = (ecran->h - menuSurface->h) / 2;
+                SDL_Rect dst = { (Sint16)ox, (Sint16)oy, 0, 0 };
+                SDL_BlitSurface(menuSurface, nullptr, ecran, &dst);
             }
             SDL_Flip(ecran);
 
@@ -89,12 +112,24 @@ void launchSdlPresentation()
                     if (event.type == SDL_QUIT) {
                         state = QUIT;
                         inMenu = false;
-                    } else if (event.type == SDL_KEYDOWN && event.key.keysym.sym == SDLK_ESCAPE) {
-                        state = QUIT;
-                        inMenu = false;
+                    } else if (event.type == SDL_KEYDOWN) {
+                        if (event.key.keysym.sym == SDLK_ESCAPE) {
+                            if (isFullScreen) {
+                                isFullScreen = false;
+                                ecran = setVideo(isFullScreen);
+                                inMenu = false; // redraw menu
+                            } else {
+                                state = QUIT;
+                                inMenu = false;
+                            }
+                        } else if (event.key.keysym.sym == SDLK_F11 || event.key.keysym.sym == SDLK_f) {
+                            isFullScreen = !isFullScreen;
+                            ecran = setVideo(isFullScreen);
+                            inMenu = false; // redraw menu
+                        }
                     } else if (event.type == SDL_MOUSEBUTTONUP) {
-                        int mx = event.button.x;
-                        int my = event.button.y;
+                        int mx = event.button.x - ox;
+                        int my = event.button.y - oy;
 
                         // Button 1: Présentation Générale (315..730, 215..287)
                         if (mx >= 315 && mx <= 730 && my >= 215 && my <= 287) {
@@ -122,8 +157,11 @@ void launchSdlPresentation()
             SDL_Event event;
 
             while (inPres && state == PRESENTATION) {
-                // Clear screen to clean background
-                SDL_FillRect(ecran, nullptr, SDL_MapRGB(ecran->format, 240, 245, 250));
+                // Clear screen to clean white background
+                SDL_FillRect(ecran, nullptr, SDL_MapRGB(ecran->format, 255, 255, 255));
+
+                int cx = (ecran->w - 800) / 2;
+                int cy = (ecran->h - 600) / 2;
 
                 // Draw Robot at center
                 if (robotSurface) {
@@ -135,7 +173,7 @@ void launchSdlPresentation()
 
                 // Draw Back Button at bottom-left
                 if (retourSurface) {
-                    SDL_Rect dstRetour = { 30, 650, 0, 0 };
+                    SDL_Rect dstRetour = { (Sint16)(cx + 30), (Sint16)(cy + 520), 0, 0 };
                     SDL_BlitSurface(retourSurface, nullptr, ecran, &dstRetour);
                 }
 
@@ -146,7 +184,7 @@ void launchSdlPresentation()
                 }
                 currentBubble = loadBubble(bubbleIndex);
                 if (currentBubble) {
-                    SDL_Rect dstBubble = { 40, 60, 0, 0 };
+                    SDL_Rect dstBubble = { (Sint16)(cx + 40), (Sint16)(cy + 30), 0, 0 };
                     SDL_BlitSurface(currentBubble, nullptr, ecran, &dstBubble);
                 }
 
@@ -160,6 +198,10 @@ void launchSdlPresentation()
                         if (event.key.keysym.sym == SDLK_ESCAPE) {
                             state = MENU;
                             inPres = false;
+                        } else if (event.key.keysym.sym == SDLK_F11 || event.key.keysym.sym == SDLK_f) {
+                            isFullScreen = !isFullScreen;
+                            ecran = setVideo(isFullScreen);
+                            // redraw loop continues
                         } else if (event.key.keysym.sym == SDLK_RIGHT || event.key.keysym.sym == SDLK_SPACE) {
                             if (bubbleIndex < 6) {
                                 bubbleIndex++;
@@ -176,8 +218,8 @@ void launchSdlPresentation()
                         int mx = event.button.x;
                         int my = event.button.y;
 
-                        // Check back arrow button (30..100, 650..718)
-                        if (mx >= 30 && mx <= 100 && my >= 650 && my <= 718) {
+                        // Check back arrow button (cx+30..cx+100, cy+520..cy+590)
+                        if (mx >= cx + 30 && mx <= cx + 100 && my >= cy + 520 && my <= cy + 590) {
                             if (bubbleIndex == 1) {
                                 state = MENU;
                                 inPres = false;
@@ -198,17 +240,20 @@ void launchSdlPresentation()
             }
         }
         else if (state == CREDITS) {
+            SDL_FillRect(ecran, nullptr, SDL_MapRGB(ecran->format, 0, 0, 0));
+
+            int ox = 0;
+            int oy = 0;
             if (creditsSurface) {
-                SDL_Rect dst = { (Sint16)((ecran->w - creditsSurface->w) / 2), (Sint16)((ecran->h - creditsSurface->h) / 2), 0, 0 };
-                SDL_FillRect(ecran, nullptr, SDL_MapRGB(ecran->format, 18, 26, 38));
+                ox = (ecran->w - creditsSurface->w) / 2;
+                oy = (ecran->h - creditsSurface->h) / 2;
+                SDL_Rect dst = { (Sint16)ox, (Sint16)oy, 0, 0 };
                 SDL_BlitSurface(creditsSurface, nullptr, ecran, &dst);
-            } else {
-                SDL_FillRect(ecran, nullptr, SDL_MapRGB(ecran->format, 20, 20, 30));
             }
 
             // Draw back button
             if (retourSurface) {
-                SDL_Rect dstRetour = { 30, 720, 0, 0 };
+                SDL_Rect dstRetour = { (Sint16)(ox + 30), (Sint16)(oy + (creditsSurface ? creditsSurface->h : BASE_H) - 80), 0, 0 };
                 SDL_BlitSurface(retourSurface, nullptr, ecran, &dstRetour);
             }
             SDL_Flip(ecran);
@@ -220,7 +265,16 @@ void launchSdlPresentation()
                     if (event.type == SDL_QUIT) {
                         state = QUIT;
                         inCred = false;
-                    } else if (event.type == SDL_KEYDOWN || event.type == SDL_MOUSEBUTTONUP) {
+                    } else if (event.type == SDL_KEYDOWN) {
+                        if (event.key.keysym.sym == SDLK_F11 || event.key.keysym.sym == SDLK_f) {
+                            isFullScreen = !isFullScreen;
+                            ecran = setVideo(isFullScreen);
+                            inCred = false; // redraw credits
+                        } else {
+                            state = MENU;
+                            inCred = false;
+                        }
+                    } else if (event.type == SDL_MOUSEBUTTONUP) {
                         state = MENU;
                         inCred = false;
                     }

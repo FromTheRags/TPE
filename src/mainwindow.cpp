@@ -1,22 +1,30 @@
 #include "mainwindow.h"
-#include "utils.h"
 #include "sdl_presentation.h"
+#include "utils.h"
 
 #include <QApplication>
 #include <QMenuBar>
+#include <QMenu>
 #include <QAction>
-#include <QFileDialog>
 #include <QMessageBox>
-#include <QTextBrowser>
-#include <QWhatsThis>
+#include <QDialog>
+#include <QVBoxLayout>
+#include <QHBoxLayout>
+#include <QFormLayout>
+#include <QFileDialog>
 #include <QFile>
 #include <QTextStream>
+#include <QFileInfo>
+#include <QIcon>
+#include <QPixmap>
+#include <QFont>
 #include <cmath>
 
 ClickableAreaWidget::ClickableAreaWidget(QWidget *parent)
     : QWidget(parent)
 {
     setCursor(Qt::PointingHandCursor);
+    setAttribute(Qt::WA_Hover, true);
 }
 
 void ClickableAreaWidget::mousePressEvent(QMouseEvent *event)
@@ -27,8 +35,11 @@ void ClickableAreaWidget::mousePressEvent(QMouseEvent *event)
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
+    , contentContainer(nullptr)
+    , actionPleinEcran(nullptr)
 {
-    setFixedSize(1100, 580);
+    setMinimumSize(1100, 580);
+    resize(1100, 580);
     setWindowTitle("TPE - Simulateur de Production Énergétique");
 
     QString iconPath = getAssetPath("icone.png");
@@ -57,6 +68,15 @@ MainWindow::MainWindow(QWidget *parent)
     actionQuitter->setIcon(QIcon(getAssetPath("icone_quit.png")));
     connect(actionQuitter, &QAction::triggered, qApp, &QApplication::quit);
     menuFichier->addAction(actionQuitter);
+
+    // --- Menu Affichage (Plein écran) ---
+    QMenu *menuAffichage = menuBar()->addMenu("&Affichage");
+    actionPleinEcran = new QAction("&Plein écran", this);
+    actionPleinEcran->setShortcut(QKeySequence(Qt::Key_F11));
+    actionPleinEcran->setCheckable(true);
+    actionPleinEcran->setStatusTip("Basculer en mode plein écran (F11)");
+    connect(actionPleinEcran, &QAction::triggered, this, &MainWindow::toggleFullScreen);
+    menuAffichage->addAction(actionPleinEcran);
 
     // --- Menu Calculs ---
     QMenu *menuCalcul = menuBar()->addMenu("&Calculs");
@@ -91,18 +111,23 @@ MainWindow::MainWindow(QWidget *parent)
     QAction *menuAide = menuBar()->addAction("&?");
     connect(menuAide, &QAction::triggered, this, &MainWindow::aide);
 
-    // --- Central Widget ---
+    // --- Central Widget & Centered Content Container ---
     QWidget *zoneCentrale = new QWidget(this);
+    zoneCentrale->setStyleSheet("background-color: #f0f3f6;");
 
-    // Background Image
-    QLabel *image = new QLabel(zoneCentrale);
+    contentContainer = new QWidget(zoneCentrale);
+    contentContainer->setFixedSize(1100, 560);
+    contentContainer->setStyleSheet("background-color: transparent;");
+
+    // Background Image (authentic ENR5.png)
+    QLabel *image = new QLabel(contentContainer);
     image->setGeometry(0, 0, 830, 528);
     image->setPixmap(QPixmap(getAssetPath("ENR5.png")));
     image->setScaledContents(true);
 
     // Interactive hotspot areas overlaid on ENR5.png
     for (int i = 0; i < 7; ++i) {
-        tool[i] = new ClickableAreaWidget(zoneCentrale);
+        tool[i] = new ClickableAreaWidget(contentContainer);
         connect(tool[i], &ClickableAreaWidget::clicked, this, &MainWindow::interactif);
     }
 
@@ -150,108 +175,108 @@ MainWindow::MainWindow(QWidget *parent)
     QFont labelFont("Segoe UI", 8);
 
     // Section 1: Éolien
-    QLabel *texte1 = new QLabel("<u>Énergie éolienne</u> :", zoneCentrale);
+    QLabel *texte1 = new QLabel("<u>Énergie éolienne</u> :", contentContainer);
     texte1->setFont(headerFont);
     texte1->setGeometry(840, 25, 250, 30);
 
-    box1bis = new QDoubleSpinBox(zoneCentrale);
+    box1bis = new QDoubleSpinBox(contentContainer);
     box1bis->setRange(0, 100000);
     box1bis->setValue(100);
     box1bis->setDecimals(0);
     box1bis->setGeometry(840, 58, 70, 26);
-    QLabel *texte1bis = new QLabel("Nombre d'éoliennes", zoneCentrale);
+    QLabel *texte1bis = new QLabel("Nombre d'éoliennes", contentContainer);
     texte1bis->setFont(labelFont);
     texte1bis->setGeometry(918, 58, 175, 26);
 
-    box1 = new QDoubleSpinBox(zoneCentrale);
+    box1 = new QDoubleSpinBox(contentContainer);
     box1->setRange(0, 200);
     box1->setValue(80);
     box1->setDecimals(0);
     box1->setGeometry(840, 88, 70, 26);
-    QLabel *texte2 = new QLabel("Diamètre du rotor (en m)", zoneCentrale);
+    QLabel *texte2 = new QLabel("Diamètre du rotor (en m)", contentContainer);
     texte2->setFont(labelFont);
     texte2->setGeometry(918, 88, 175, 26);
 
-    box2 = new QDoubleSpinBox(zoneCentrale);
+    box2 = new QDoubleSpinBox(contentContainer);
     box2->setRange(0, 60);
     box2->setValue(8.0);
     box2->setDecimals(1);
     box2->setGeometry(840, 118, 70, 26);
-    QLabel *texte3 = new QLabel("Vitesse moyenne du vent (m/s)", zoneCentrale);
+    QLabel *texte3 = new QLabel("Vitesse moyenne du vent (m/s)", contentContainer);
     texte3->setFont(labelFont);
     texte3->setGeometry(918, 118, 175, 26);
 
-    box3 = new QDoubleSpinBox(zoneCentrale);
+    box3 = new QDoubleSpinBox(contentContainer);
     box3->setRange(0, 8766);
     box3->setValue(6000);
     box3->setDecimals(0);
     box3->setGeometry(840, 148, 70, 26);
-    QLabel *texte4 = new QLabel("Heures de fonctionnement / an", zoneCentrale);
+    QLabel *texte4 = new QLabel("Heures de fonctionnement / an", contentContainer);
     texte4->setFont(labelFont);
     texte4->setGeometry(918, 148, 175, 26);
 
     // Section 2: Solaire
-    QLabel *texte5 = new QLabel("<u>Énergie solaire</u> :", zoneCentrale);
+    QLabel *texte5 = new QLabel("<u>Énergie solaire</u> :", contentContainer);
     texte5->setFont(headerFont);
     texte5->setGeometry(840, 185, 250, 30);
 
-    box4 = new QDoubleSpinBox(zoneCentrale);
+    box4 = new QDoubleSpinBox(contentContainer);
     box4->setRange(0, 100000000);
     box4->setValue(50000);
     box4->setDecimals(0);
     box4->setGeometry(840, 218, 70, 26);
-    QLabel *texte6 = new QLabel("Surface des panneaux (en m²)", zoneCentrale);
+    QLabel *texte6 = new QLabel("Surface des panneaux (en m²)", contentContainer);
     texte6->setFont(labelFont);
     texte6->setGeometry(918, 218, 175, 26);
 
-    box5 = new QDoubleSpinBox(zoneCentrale);
+    box5 = new QDoubleSpinBox(contentContainer);
     box5->setRange(0, 50);
     box5->setValue(16);
     box5->setDecimals(0);
     box5->setGeometry(840, 248, 70, 26);
-    QLabel *texte7 = new QLabel("Rendement du module (%)", zoneCentrale);
+    QLabel *texte7 = new QLabel("Rendement du module (%)", contentContainer);
     texte7->setFont(labelFont);
     texte7->setGeometry(918, 248, 175, 26);
 
-    box6 = new QDoubleSpinBox(zoneCentrale);
+    box6 = new QDoubleSpinBox(contentContainer);
     box6->setRange(0, 3000);
     box6->setValue(1500);
     box6->setDecimals(0);
     box6->setGeometry(840, 278, 70, 26);
-    QLabel *texte8 = new QLabel("Ensoleillement (kWh/m²/an)", zoneCentrale);
+    QLabel *texte8 = new QLabel("Ensoleillement (kWh/m²/an)", contentContainer);
     texte8->setFont(labelFont);
     texte8->setGeometry(918, 278, 175, 26);
 
-    box7 = new QDoubleSpinBox(zoneCentrale);
+    box7 = new QDoubleSpinBox(contentContainer);
     box7->setRange(0.01, 1.0);
     box7->setSingleStep(0.01);
     box7->setValue(0.75);
     box7->setDecimals(2);
     box7->setGeometry(840, 308, 70, 26);
-    QLabel *texte9 = new QLabel("Coefficient de performance (Cp)", zoneCentrale);
+    QLabel *texte9 = new QLabel("Coefficient de performance (Cp)", contentContainer);
     texte9->setFont(labelFont);
     texte9->setGeometry(918, 308, 175, 26);
 
     // Section 3: Nucléaire
-    QLabel *texte10 = new QLabel("<u>Énergie nucléaire</u> :", zoneCentrale);
+    QLabel *texte10 = new QLabel("<u>Énergie nucléaire</u> :", contentContainer);
     texte10->setFont(headerFont);
     texte10->setGeometry(840, 345, 250, 30);
 
-    box8 = new QDoubleSpinBox(zoneCentrale);
+    box8 = new QDoubleSpinBox(contentContainer);
     box8->setRange(1, 3000);
     box8->setValue(1000);
     box8->setDecimals(0);
     box8->setGeometry(840, 378, 70, 26);
-    QLabel *texte11 = new QLabel("Puissance moyenne (MW)", zoneCentrale);
+    QLabel *texte11 = new QLabel("Puissance moyenne (MW)", contentContainer);
     texte11->setFont(labelFont);
     texte11->setGeometry(918, 378, 175, 26);
 
-    box9 = new QDoubleSpinBox(zoneCentrale);
+    box9 = new QDoubleSpinBox(contentContainer);
     box9->setRange(0, 100);
     box9->setValue(58);
     box9->setDecimals(0);
     box9->setGeometry(840, 408, 70, 26);
-    QLabel *texte12 = new QLabel("Nombre de réacteurs", zoneCentrale);
+    QLabel *texte12 = new QLabel("Nombre de réacteurs", contentContainer);
     texte12->setFont(labelFont);
     texte12->setGeometry(918, 408, 175, 26);
 
@@ -268,7 +293,7 @@ MainWindow::MainWindow(QWidget *parent)
     connect(box9,    QOverload<double>::of(&QDoubleSpinBox::valueChanged), this, &MainWindow::resultat);
 
     // Result display label
-    m_resultat = new QLabel(zoneCentrale);
+    m_resultat = new QLabel(contentContainer);
     m_resultat->setGeometry(0, 525, 830, 32);
     m_resultat->setFrameStyle(QFrame::Box | QFrame::Raised);
     m_resultat->setFont(QFont("Segoe UI", 12, QFont::Bold));
@@ -282,6 +307,40 @@ MainWindow::MainWindow(QWidget *parent)
 
 MainWindow::~MainWindow()
 {
+}
+
+void MainWindow::toggleFullScreen()
+{
+    if (isFullScreen()) {
+        showNormal();
+        if (actionPleinEcran) actionPleinEcran->setChecked(false);
+    } else {
+        showFullScreen();
+        if (actionPleinEcran) actionPleinEcran->setChecked(true);
+    }
+}
+
+void MainWindow::keyPressEvent(QKeyEvent *event)
+{
+    if (event->key() == Qt::Key_F11) {
+        toggleFullScreen();
+        event->accept();
+    } else if (event->key() == Qt::Key_Escape && isFullScreen()) {
+        toggleFullScreen();
+        event->accept();
+    } else {
+        QMainWindow::keyPressEvent(event);
+    }
+}
+
+void MainWindow::resizeEvent(QResizeEvent *event)
+{
+    QMainWindow::resizeEvent(event);
+    if (contentContainer && centralWidget()) {
+        int cx = (centralWidget()->width() - contentContainer->width()) / 2;
+        int cy = (centralWidget()->height() - contentContainer->height()) / 2;
+        contentContainer->move(qMax(0, cx), qMax(0, cy));
+    }
 }
 
 void MainWindow::resultat(double)
@@ -319,77 +378,79 @@ void MainWindow::resultat(double)
 
 void MainWindow::exportation()
 {
-    QString fichier = QFileDialog::getSaveFileName(this, "Enregistrer la simulation", QString(), "Fichier texte (*.txt)");
-    if (fichier.isEmpty()) {
+    QString chemin = QFileDialog::getSaveFileName(
+        this,
+        "Enregistrer les paramètres de simulation",
+        "simulation.txt",
+        "Fichiers texte (*.txt);;Tous les fichiers (*.*)"
+    );
+
+    if (chemin.isEmpty()) {
         return;
     }
 
-    QFile file(fichier);
+    QFile file(chemin);
     if (!file.open(QIODevice::WriteOnly | QIODevice::Text)) {
-        QMessageBox::critical(this, "Erreur", "Impossible de créer le fichier :\n" + fichier);
+        QMessageBox::critical(this, "Erreur", "Impossible d'écrire dans le fichier sélectionné.");
         return;
     }
 
-    QTextStream out(&file);
-    out.setEncoding(QStringConverter::Utf8);
+    QTextStream flux(&file);
+    flux.setEncoding(QStringConverter::Utf8);
 
-    out << "\n Énergie éolienne : \n\n"
-        << " Nombre d'éoliennes : " << QString::number(box1bis->value(), 'f', 0) << " \n"
-        << " Diamètre du rotor (en m) : " << QString::number(box1->value(), 'f', 0) << " \n"
-        << " Vitesse moyenne du vent (en m/s) : " << QString::number(box2->value(), 'f', 1) << " \n"
-        << " Temps de fonctionnement (en heures) : " << QString::number(box3->value(), 'f', 0) << " \n\n"
-        << " Énergie solaire : \n\n"
-        << " Surface du champ photovoltaïque (en m²) : " << QString::number(box4->value(), 'f', 2) << " \n"
-        << " Rendement du module (en %) : " << QString::number(box5->value(), 'f', 0) << " \n"
-        << " Ensoleillement/rayonnement sur la surface inclinée en Kwh/m² : " << QString::number(box6->value(), 'f', 0) << " \n"
-        << " Coefficient de perte : " << QString::number(box7->value(), 'f', 2) << " \n\n"
-        << " Énergie nucléaire : \n\n"
-        << " Puissance moyenne des réacteurs (en MW) : " << QString::number(box8->value(), 'f', 0) << " \n"
-        << " Nombre de réacteurs : " << QString::number(box9->value(), 'f', 0) << " \n\n"
-        << " " << m_resultat->text() << " \n";
+    flux << box1bis->value() << "\n"
+         << box1->value()    << "\n"
+         << box2->value()    << "\n"
+         << box3->value()    << "\n"
+         << box4->value()    << "\n"
+         << box5->value()    << "\n"
+         << box6->value()    << "\n"
+         << box7->value()    << "\n"
+         << box8->value()    << "\n"
+         << box9->value()    << "\n";
 
     file.close();
-    QMessageBox::information(this, "Sauvegarde réussie", "Simulation enregistrée avec succès dans :\n" + fichier);
+    QMessageBox::information(this, "Sauvegarde réussie", "Les paramètres de la simulation ont été enregistrés avec succès.");
 }
 
 void MainWindow::importation()
 {
-    QString fichier = QFileDialog::getOpenFileName(this, "Ouvrir une simulation", QString(), "Fichier texte (*.txt)");
-    if (fichier.isEmpty()) {
+    QString chemin = QFileDialog::getOpenFileName(
+        this,
+        "Charger des paramètres de simulation",
+        "",
+        "Fichiers texte (*.txt);;Tous les fichiers (*.*)"
+    );
+
+    if (chemin.isEmpty()) {
         return;
     }
 
-    QFile file(fichier);
+    QFile file(chemin);
     if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
-        QMessageBox::critical(this, "Erreur", "Impossible d'ouvrir le fichier :\n" + fichier);
+        QMessageBox::critical(this, "Erreur", "Impossible de lire le fichier sélectionné.");
         return;
     }
 
-    QTextStream in(&file);
-    in.setEncoding(QStringConverter::Utf8);
+    QTextStream flux(&file);
+    flux.setEncoding(QStringConverter::Utf8);
 
-    double recup[10] = {0};
-    int valIndex = 0;
+    double recup[10] = {0.0};
+    int count = 0;
 
-    while (!in.atEnd() && valIndex < 10) {
-        QString line = in.readLine();
-        int colonIdx = line.indexOf(':');
-        if (colonIdx != -1) {
-            QString valStr = line.mid(colonIdx + 1).trimmed();
-            // Extract the first numeric token
-            QStringList tokens = valStr.split(' ', Qt::SkipEmptyParts);
-            if (!tokens.isEmpty()) {
-                bool ok = false;
-                double val = tokens.first().toDouble(&ok);
-                if (ok) {
-                    recup[valIndex++] = val;
-                }
+    while (!flux.atEnd() && count < 10) {
+        QString line = flux.readLine().trimmed();
+        if (!line.isEmpty()) {
+            bool ok = false;
+            double val = line.toDouble(&ok);
+            if (ok) {
+                recup[count++] = val;
             }
         }
     }
     file.close();
 
-    if (valIndex >= 9) {
+    if (count == 10) {
         box1bis->setValue(recup[0]);
         box1->setValue(recup[1]);
         box2->setValue(recup[2]);
@@ -399,156 +460,150 @@ void MainWindow::importation()
         box6->setValue(recup[6]);
         box7->setValue(recup[7]);
         box8->setValue(recup[8]);
-        if (valIndex >= 10) {
-            box9->setValue(recup[9]);
-        }
+        box9->setValue(recup[9]);
+
         resultat(0.0);
-        QMessageBox::information(this, "Importation", "Simulation chargée avec succès !");
+        QMessageBox::information(this, "Importation réussie", "Les 10 paramètres de simulation ont été chargés avec succès.");
     } else {
-        QMessageBox::warning(this, "Format invalide", "Le fichier ne contient pas les données attendues pour la simulation.");
+        QMessageBox::warning(
+            this,
+            "Fichier invalide",
+            QString("Le fichier doit contenir 10 valeurs numériques (seules %1 ont été lues).").arg(count)
+        );
     }
-}
-
-void MainWindow::interactif()
-{
-    if (QWhatsThis::inWhatsThisMode()) {
-        QWhatsThis::leaveWhatsThisMode();
-    } else {
-        QWhatsThis::enterWhatsThisMode();
-    }
-}
-
-void MainWindow::photov()
-{
-    QTextBrowser *browser = new QTextBrowser();
-    browser->setAttribute(Qt::WA_DeleteOnClose);
-    browser->setWindowIcon(QIcon(getAssetPath("Photo.png")));
-    browser->setWindowTitle("Panneaux Photovoltaïques - Principes & Rendements");
-    browser->setReadOnly(true);
-    browser->setOpenExternalLinks(true);
-
-    QString statsImg = getAssetPath("stats.png");
-
-    QString html = QString(
-        "<div style='font-family: Segoe UI, sans-serif; padding: 15px;'>"
-        "<h2 style='color: #1a4a8a; text-align: center; border-bottom: 2px solid #1a4a8a; padding-bottom: 8px;'>Panneaux Solaires Photovoltaïques</h2>"
-        "<p>Ce module calcule la production électrique annuelle en utilisant la formule standard de dimensionnement :</p>"
-        "<div style='background: #eef4fc; padding: 12px; border-radius: 6px; text-align: center; font-size: 16px; font-weight: bold; color: #103060;'>"
-        "E = S × r × H × Cp"
-        "</div>"
-        "<ul>"
-        "<li><b>E</b> : Énergie produite annuellement (en kWh)</li>"
-        "<li><b>S</b> : Surface totale du champ photovoltaïque (en m²)</li>"
-        "<li><b>r</b> : Rendement moyen des modules (typiquement 14 % à 22 %)</li>"
-        "<li><b>H</b> : Ensoleillement global annuel sur plan incliné (en kWh/m²/an, de 1100 dans le Nord à plus de 1500 dans le Sud)</li>"
-        "<li><b>Cp</b> : Facteur de performance global (généralement compris entre 0.75 et 0.82)</li>"
-        "</ul>"
-        "<p><b>Pertes prises en compte dans le coefficient Cp :</b></p>"
-        "<ul>"
-        "<li>Pertes onduleur : 8 % à 15 %</li>"
-        "<li>Pertes thermiques (échauffement des cellules) : 5 % à 12 %</li>"
-        "<li>Pertes câbles, connectiques et salissures : 3 % à 5 %</li>"
-        "</ul>"
-        "<div style='text-align: center; margin-top: 20px;'>"
-        "<img src='%1' width='500' style='border: 1px solid #ccc; border-radius: 6px;'/>"
-        "</div>"
-        "</div>"
-    ).arg(statsImg);
-
-    browser->setHtml(html);
-    browser->resize(850, 700);
-    browser->show();
 }
 
 void MainWindow::eolien()
 {
-    QTextBrowser *browser = new QTextBrowser();
-    browser->setAttribute(Qt::WA_DeleteOnClose);
-    browser->setWindowIcon(QIcon(getAssetPath("eolienne_fixe.png")));
-    browser->setWindowTitle("Énergie Éolienne - Théorie & Potentiel");
-    browser->setReadOnly(true);
-    browser->setOpenExternalLinks(true);
+    QDialog *dialog = new QDialog(this);
+    dialog->setWindowTitle("Énergie Éolienne - Potentiel et caractéristiques");
+    dialog->setMinimumSize(850, 720);
 
-    QString potImg = getAssetPath("potentiel.png");
-    QString tailImg = getAssetPath("eoliennes_taille.png");
-    QString puisImg = getAssetPath("Eo_puiss.png");
+    QVBoxLayout *layout = new QVBoxLayout(dialog);
 
-    QString html = QString(
-        "<div style='font-family: Segoe UI, sans-serif; padding: 15px;'>"
-        "<h2 style='color: #1a6b3e; text-align: center; border-bottom: 2px solid #1a6b3e; padding-bottom: 8px;'>L'Énergie Éolienne</h2>"
-        "<p>Le rendement théorique maximal d'un aérogénérateur est fixé par la <b>limite de Betz</b> à 16/27 (soit environ 59,3 % de l'énergie cinétique du flux d'air).</p>"
-        "<p>En tenant compte des pertes aérodynamiques, mécaniques (multiplicateur) et électriques (génératrice, onduleur, transformateur), on considère 70 % de la limite de Betz :</p>"
+    QLabel *titre = new QLabel(
+        "<div style='background: #eef4fc; padding: 12px; border-radius: 6px; text-align: center; font-size: 16px; font-weight: bold; color: #103060;'>"
+        "Potentiel éolien en France & Évolution de la taille des aérogénérateurs"
+        "</div>",
+        dialog
+    );
+    layout->addWidget(titre);
+
+    QHBoxLayout *imgLayout = new QHBoxLayout();
+
+    QLabel *imgPotentiel = new QLabel(dialog);
+    imgPotentiel->setPixmap(QPixmap(getAssetPath("potentiel.png")).scaled(400, 520, Qt::KeepAspectRatio, Qt::SmoothTransformation));
+    imgPotentiel->setAlignment(Qt::AlignCenter);
+    imgLayout->addWidget(imgPotentiel);
+
+    QVBoxLayout *sideLayout = new QVBoxLayout();
+
+    QLabel *imgTaille = new QLabel(dialog);
+    imgTaille->setPixmap(QPixmap(getAssetPath("eoliennes_taille.png")).scaled(400, 260, Qt::KeepAspectRatio, Qt::SmoothTransformation));
+    imgTaille->setAlignment(Qt::AlignCenter);
+    sideLayout->addWidget(imgTaille);
+
+    QLabel *imgCourbe = new QLabel(dialog);
+    imgCourbe->setPixmap(QPixmap(getAssetPath("Eo_puiss.png")).scaled(400, 240, Qt::KeepAspectRatio, Qt::SmoothTransformation));
+    imgCourbe->setAlignment(Qt::AlignCenter);
+    sideLayout->addWidget(imgCourbe);
+
+    imgLayout->addLayout(sideLayout);
+    layout->addLayout(imgLayout);
+
+    dialog->setLayout(layout);
+    dialog->exec();
+}
+
+void MainWindow::photov()
+{
+    QDialog *dialog = new QDialog(this);
+    dialog->setWindowTitle("Énergie Solaire Photovoltaïque - Ensoleillement");
+    dialog->setMinimumSize(700, 650);
+
+    QVBoxLayout *layout = new QVBoxLayout(dialog);
+
+    QLabel *titre = new QLabel(
         "<div style='background: #eef7f2; padding: 12px; border-radius: 6px; text-align: center; font-size: 16px; font-weight: bold; color: #0d4a27;'>"
-        "P = 0.70 × (16/27) × 0.5 × ρ × S × v³ × n"
-        "</div>"
-        "<ul>"
-        "<li><b>P</b> : Puissance instantanée moyenne (en W)</li>"
-        "<li><b>ρ</b> : Masse volumique de l'air sec (1.23 kg/m³ à 15 °C et 1.013 bar)</li>"
-        "<li><b>S</b> : Surface balayée par le rotor (S = π × r²)</li>"
-        "<li><b>v</b> : Vitesse moyenne du vent (m/s) – <i>attention à la dépendance au cube !</i></li>"
-        "<li><b>n</b> : Nombre d'éoliennes dans le parc</li>"
-        "</ul>"
-        "<div style='text-align: center; margin: 20px 0;'>"
-        "<h4>Courbe de puissance typique :</h4>"
-        "<img src='%1' width='450' style='border: 1px solid #ccc; border-radius: 6px;'/><br/><br/>"
-        "<h4>Évolution des dimensions et de la puissance :</h4>"
-        "<img src='%2' width='750' style='border: 1px solid #ccc; border-radius: 6px;'/><br/><br/>"
-        "<h4>Potentiel éolien français :</h4>"
-        "<img src='%3' width='500' style='border: 1px solid #ccc; border-radius: 6px;'/>"
-        "</div>"
-        "</div>"
-    ).arg(puisImg, tailImg, potImg);
+        "Carte de l'irradiation solaire globale annuelle en France (kWh / m² / an)"
+        "</div>",
+        dialog
+    );
+    layout->addWidget(titre);
 
-    browser->setHtml(html);
-    browser->resize(900, 750);
-    browser->show();
+    QLabel *imgStats = new QLabel(dialog);
+    imgStats->setPixmap(QPixmap(getAssetPath("stats.png")).scaled(550, 530, Qt::KeepAspectRatio, Qt::SmoothTransformation));
+    imgStats->setAlignment(Qt::AlignCenter);
+    layout->addWidget(imgStats);
+
+    QLabel *desc = new QLabel(
+        "<p style='color: #404040; font-size: 11px; text-align: center;'>"
+        "Formule de calcul : <em>E = S × r × H × Cp</em> (avec <em>S</em> en m², <em>r</em> rendement, <em>H</em> ensoleillement, <em>Cp</em> performance)."
+        "</p>",
+        dialog
+    );
+    layout->addWidget(desc);
+
+    dialog->setLayout(layout);
+    dialog->exec();
 }
 
 void MainWindow::nuclo()
 {
-    QTextBrowser *browser = new QTextBrowser();
-    browser->setAttribute(Qt::WA_DeleteOnClose);
-    browser->setWindowIcon(QIcon(getAssetPath("nuclo.png")));
-    browser->setWindowTitle("Énergie Nucléaire - Fission & Disponibilité");
-    browser->setReadOnly(true);
-    browser->setOpenExternalLinks(true);
+    QDialog *dialog = new QDialog(this);
+    dialog->setWindowTitle("Énergie Nucléaire - Répartition du parc en France");
+    dialog->setMinimumSize(750, 750);
 
-    QString nucImg = getAssetPath("Nucléaire.png");
+    QVBoxLayout *layout = new QVBoxLayout(dialog);
 
-    QString html = QString(
-        "<div style='font-family: Segoe UI, sans-serif; padding: 15px;'>"
-        "<h2 style='color: #8c3b10; text-align: center; border-bottom: 2px solid #8c3b10; padding-bottom: 8px;'>L'Énergie Nucléaire</h2>"
-        "<p>L'électricité d'origine nucléaire constitue la base de la production électrique française. Elle est pilotable et quasiment décarbonée en phase d'exploitation.</p>"
+    QLabel *titre = new QLabel(
         "<div style='background: #fdf5f0; padding: 12px; border-radius: 6px; text-align: center; font-size: 16px; font-weight: bold; color: #612809;'>"
-        "E = P × n × 7451.1"
-        "</div>"
-        "<ul>"
-        "<li><b>E</b> : Énergie annuelle produite (en MWh)</li>"
-        "<li><b>P</b> : Puissance électrique nominale unitaire (en MW)</li>"
-        "<li><b>n</b> : Nombre de réacteurs en service</li>"
-        "<li><b>7451.1 h</b> : Nombre d'heures annuelles équivalentes à pleine puissance, basé sur un facteur de disponibilité moyen de 85 % (24 × 365.25 × 0.85).</li>"
-        "</ul>"
-        "<div style='text-align: center; margin-top: 20px;'>"
-        "<h4>Cartographie du parc électronucléaire français :</h4>"
-        "<img src='%1' width='700' style='border: 1px solid #ccc; border-radius: 6px;'/>"
-        "</div>"
-        "</div>"
-    ).arg(nucImg);
+        "Carte du parc électronucléaire français (19 centrales nucléaires)"
+        "</div>",
+        dialog
+    );
+    layout->addWidget(titre);
 
-    browser->setHtml(html);
-    browser->resize(850, 750);
-    browser->show();
+    QLabel *imgNuclo = new QLabel(dialog);
+    imgNuclo->setPixmap(QPixmap(getAssetPath("Nucléaire.png")).scaled(650, 650, Qt::KeepAspectRatio, Qt::SmoothTransformation));
+    imgNuclo->setAlignment(Qt::AlignCenter);
+    layout->addWidget(imgNuclo);
+
+    dialog->setLayout(layout);
+    dialog->exec();
+}
+
+void MainWindow::interactif()
+{
+    QMessageBox::information(
+        this,
+        "Mode Interactif",
+        "Cliquez directement sur l'image paysagère pour découvrir chaque source d'énergie :\n\n"
+        " • Éoliennes : conversion de l'énergie cinétique du vent.\n"
+        " • Centrale nucléaire : réacteur thermique à fission d'uranium.\n"
+        " • Panneaux photovoltaïques : captage de l'énergie solaire.\n"
+        " • Centrale thermique : combustion de gaz, charbon ou fioul.\n"
+        " • Géothermie : exploitation de la chaleur du sous-sol terrestre.\n"
+        " • Hydroélectricité : énergie motrice des cours d'eau et barrages.\n"
+        " • Biomasse : valorisation énergétique des matières organiques."
+    );
 }
 
 void MainWindow::aide()
 {
-    QLabel *image = new QLabel();
-    image->setAttribute(Qt::WA_DeleteOnClose);
-    image->setWindowTitle("À propos - TPE Simulateur");
-    image->setWindowIcon(QIcon(getAssetPath("icone.png")));
+    QDialog *dialog = new QDialog(this);
+    dialog->setWindowTitle("Crédits & Informations");
+    dialog->setFixedSize(880, 600);
+
+    QVBoxLayout *layout = new QVBoxLayout(dialog);
+
+    QLabel *image = new QLabel(dialog);
     image->setPixmap(QPixmap(getAssetPath("credits3.png")));
-    image->resize(878, 572);
-    image->show();
+    image->setAlignment(Qt::AlignCenter);
+    layout->addWidget(image);
+
+    dialog->setLayout(layout);
+    dialog->exec();
 }
 
 void MainWindow::lancerPresentationSDL()

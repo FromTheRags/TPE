@@ -1,34 +1,33 @@
 # TPE - Simulateur de Production Énergétique
 
-Simulateur interactif modélisant le mix de production électrique en France (Énergies Renouvelables vs Nucléaire), combinant une interface graphique riche en **Qt** (Qt 5 / Qt 6) et un module interactif multimédia en **SDL 1.2**.
+Simulateur interactif modélisant le mix de production électrique en France (**Énergies Renouvelables vs Nucléaire**), combinant une interface graphique riche en **Qt** (Qt 5 / Qt 6) et un module multimédia interactif en **SDL 1.2**.
 
-Ce projet modernisé compile nativement sous **Linux** et **Windows**, est nativement compatible avec **CLion** et **CMake**, intègre des workflows d'intégration continue **GitHub Actions** (CI/CD) et produit un installeur Windows avec **Inno Setup**.
-
-Toutes les ressources graphiques, sons et polices ont été intégralement remplacées par des versions **100% libres de droits** (licences CC0 / MIT / OFL).
+Ce projet modernisé compile nativement sous **Windows** et **Linux**, est 100% compatible avec **CLion** et **CMake**, intègre des workflows d'intégration continue **GitHub Actions** (CI/CD) et produit un installeur Windows avec **Inno Setup**.
 
 ---
 
 ## Fonctionnalités
 
 1. **Simulateur de Production Énergétique (Qt)** :
-   - Schéma paysager interactif cliquable représentant les différentes sources d'énergie (Éolien, Solaire, Nucléaire, Thermique, Géothermie, Hydroélectricité, Biomasse).
-   - Paramétrage en temps réel des capacités :
+   - **Schéma paysager interactif** cliquable représentant les différentes sources d'énergie (*Éolien, Solaire photovoltaïque, Nucléaire, Thermique, Géothermie, Hydroélectricité, Biomasse*).
+   - **Mode Plein Écran** : bascule dynamique via la touche **F11**, le menu **Affichage > Plein écran**, ou sortie via **Échap**. Affichage centré avec rendu d'arrière-plan uniforme adapté aux écrans 1080p, 1440p et 4K.
+   - **Paramétrage en temps réel** :
      - *Éolien* : nombre d'éoliennes, diamètre de rotor, vitesse moyenne du vent, heures annuelles (formule avec limite théorique de Betz à 16/27).
      - *Solaire photovoltaïque* : surface de captage, rendement des modules, ensoleillement global, coefficient de performance global (Cp).
      - *Nucléaire* : puissance unitaire des réacteurs, nombre de tranches en exploitation, facteur de disponibilité moyen (85%).
-   - Calcul dynamique et conversion automatique de la production annuelle globale (Wh, kWh, MWh, GWh, TWh).
-   - Importation et exportation des scénarios de simulation au format texte (`.txt`).
-   - Fiches documentées interactives avec formules physiques, diagrammes et cartes thématiques françaises (gisement éolien, irradiation solaire, cartographie du parc nucléaire).
+   - **Calcul dynamique** et conversion automatique de la production annuelle globale (Wh, kWh, MWh, GWh, TWh).
+   - **Importation et exportation** des scénarios de simulation au format texte (`.txt`).
+   - **Fiches thématiques documentées** : potentiel éolien français, évolution des aérogénérateurs, irradiation solaire globale, cartographie complète des 19 centrales nucléaires françaises.
 
 2. **Module de Présentation Interactive (SDL 1.2)** :
-   - Accessible depuis le menu de l'application (Ctrl+P).
-   - Présentation interactive avec la mascotte originale *Volt*, bulles explicatives progressives et animation fluide.
+   - Accessible depuis le menu de l'application (**Ctrl+P**).
+   - Présentation interactive avec la mascotte originale *Volt*, bulles explicatives progressives et animation de l'éolienne.
+   - **Support du mode plein écran** : bascule dynamique en plein écran via **F11** ou la touche **F** (sortie via **Échap**).
+   - Rendu d'arrière-plan uniformisé et centré sans bandes disparates.
 
 ---
 
 ## Organisation du Projet
-
-Le projet a été restructuré pour respecter les standards modernes C++ et CMake :
 
 ```
 TPE/
@@ -36,107 +35,173 @@ TPE/
 │   └── workflows/
 │       ├── build.yml               # CI GitHub Actions (Linux & Windows)
 │       └── release.yml             # CD automatique sur tag git
-├── assets/                         # Ressources partagées (icônes, polices OFL)
+├── assets/                         # Ressources partagées (icônes, images, polices OFL)
 ├── cmake/
 │   ├── CopyRuntimeDependencies.cmake
-│   └── sdl12/                      # Bibliothèques et en-têtes SDL 1.2 pour Windows
-├── examples/                       # Fichiers de simulations d'exemple (.txt)
-├── images/                         # Graphismes libres de droits (PNG, BMP, GIF, ICO)
+│   └── sdl12/                      # Bibliothèques et en-têtes SDL 1.2 Windows (x86 & x64)
+├── dist/                           # Sortie de packaging (installeur .exe, zip portable)
+├── examples/                       # Fichiers de simulation d'exemple (.txt)
+├── images/                         # Graphismes d'origine (PNG, BMP, GIF, ICO)
 ├── innosetup/
 │   └── tpe_setup.iss               # Script Inno Setup moderne
+├── scripts/
+│   └── restore_original_assets.py  # Script de traitement et d'uniformisation des assets
 ├── src/                            # Dossier source ("source")
 │   ├── main.cpp                    # Point d'entrée de l'application Qt
-│   ├── mainwindow.h / .cpp         # Interface graphique Qt principale & calculs
-│   ├── sdl_presentation.h / .cpp   # Module interactif SDL 1.2
+│   ├── mainwindow.h / .cpp         # Interface graphique Qt principale, calculs & plein écran
+│   ├── sdl_presentation.h / .cpp   # Module interactif SDL 1.2 & plein écran
 │   ├── utils.h / .cpp              # Résolution robuste et portable des ressources
 │   └── tpe.rc                      # Fichier de ressources Windows (icône binaire)
 ├── CMakeLists.txt                  # Configuration CMake multiplateforme (CLion)
-├── LICENSE                         # Licence MIT
-├── OFL.txt                         # Licence de police SIL Open Font License
+├── LICENSE                         # Licence MIT (Créé par fromtherags en 2014)
+├── OFL.txt                         # Licence SIL Open Font License
 └── README.md
 ```
 
 ---
 
-## Compilation
+## Guide d'Installation pour Rebuild
 
-### Prérequis
+Ce guide décrit pas à pas l'installation des dépendances nécessaires pour recompiler le projet sous Windows et Linux.
 
-- **CMake** 3.16 ou supérieur
-- Un compilateur C++ compatible **C++17** (GCC, Clang ou MSVC)
-- **Qt** (version 5 ou 6 avec le module Widgets)
-- **SDL 1.2** (`libsdl1.2-dev` sous Linux, ou bibliothèques incluses sous Windows)
+### 1. Prérequis sous Windows
 
-### Sous Linux (Ubuntu / Debian)
+#### A. Outils généraux & Compilateur
+- **CLion** (qui intègre nativement MinGW GCC, CMake et Ninja dans `bin/mingw/bin`, `bin/cmake/` et `bin/ninja/`).
+- Ou alternativement, **MSYS2** (`C:\msys64`).
+
+#### B. Installation de Qt (recommandé via `aqtinstall`)
+L'outil officiel en ligne de commande `aqtinstall` permet d'installer les bibliothèques Qt précompilées sans installer l'interface graphique volumineuse de Qt :
+
+1. Installer `aqtinstall` (via winget ou pip) :
+   ```powershell
+   winget install miurahr.aqtinstall
+   # ou via python : pip install aqtinstall
+   ```
+
+2. Télécharger et installer **Qt 6.7.2 MinGW 64-bit** dans `C:\Qt` :
+   ```powershell
+   aqt install-qt windows desktop 6.7.2 win64_mingw -O C:\Qt
+   ```
+   *Note : Le fichier `CMakeLists.txt` détecte automatiquement `C:\Qt\6.7.2\mingw_64`.*
+
+3. *(Optionnel)* Si vous utilisez **MSYS2 MinGW-w64** au lieu de l'archive Qt :
+   ```bash
+   pacman -S mingw-w64-x86_64-gcc mingw-w64-x86_64-cmake mingw-w64-x86_64-ninja \
+             mingw-w64-x86_64-SDL mingw-w64-x86_64-SDL_ttf mingw-w64-x86_64-qt5-base mingw-w64-x86_64-qt5-tools
+   ```
+
+#### C. Installation d'Inno Setup 6 (pour l'installeur)
+```powershell
+winget install JRSoftware.InnoSetup
+# ou via chocolatey : choco install innosetup -y
+```
+
+---
+
+### 2. Compilation sous CLion (JetBrains)
+
+Le projet est configuré pour une prise en charge immédiate sous CLion :
+
+1. Lancer **CLion**.
+2. **Fichier** > **Ouvrir...** > Sélectionner le dossier racine du projet `TPE`.
+3. CLion charge le `CMakeLists.txt` et détecte automatiquement le compilateur MinGW inclus ainsi que l'installation Qt dans `C:/Qt/6.7.2/mingw_64`.
+   *(Si votre installation Qt est située dans un dossier personnalisé, ajoutez simplement `-DCMAKE_PREFIX_PATH=C:/chemin/vers/Qt` dans **Settings** > **Build, Execution, Deployment** > **CMake** > **CMake options**).*
+4. Cliquer sur **Build** (Marteau vert / `Ctrl+F9`) ou sur **Run** (`Shift+F10`).
+5. Les images et assets sont automatiquement copiés dans le dossier d'exécution (`cmake-build-debug-mingw`) lors de la compilation.
+
+---
+
+### 3. Compilation en ligne de commande sous Windows (PowerShell)
+
+En utilisant les outils fournis par CLion :
+
+```powershell
+# 1. Configurer l'environnement PATH
+$env:PATH = "C:\Users\$env:USERNAME\AppData\Local\Programs\CLion\bin\mingw\bin;C:\Users\$env:USERNAME\AppData\Local\Programs\CLion\bin\ninja\win\x64;$env:PATH"
+
+# 2. Configurer le projet avec CMake et Ninja
+& "C:\Users\$env:USERNAME\AppData\Local\Programs\CLion\bin\cmake\win\x64\bin\cmake.exe" `
+    -DCMAKE_BUILD_TYPE=Release `
+    -DCMAKE_MAKE_PROGRAM="C:/Users/$env:USERNAME/AppData/Local/Programs/CLion/bin/ninja/win/x64/ninja.exe" `
+    -G Ninja -S . -B build
+
+# 3. Compiler l'exécutable
+cmake --build build --config Release
+
+# 4. Déployer les dépendances Qt avec windeployqt
+& "C:\Qt\6.7.2\mingw_64\bin\windeployqt.exe" --no-translations build/tpe.exe
+
+# 5. Lancer l'application
+.\build\tpe.exe
+```
+
+---
+
+### 4. Compilation sous Linux (Ubuntu / Debian)
 
 ```bash
-# Installation des dépendances
+# 1. Installation des dépendances (Qt5 ou Qt6 et SDL 1.2)
 sudo apt-get update
 sudo apt-get install -y cmake ninja-build build-essential \
     libsdl1.2-dev libsdl-ttf2.0-dev \
     qtbase5-dev qttools5-dev-tools
 
-# Configuration et compilation
+# (Si vous êtes sous Ubuntu 24.04+, le paquet équivalent est :)
+# sudo apt-get install -y cmake ninja-build build-essential libsdl1.2-compat-dev libsdl-ttf2.0-dev qt6-base-dev qt6-tools-dev
+
+# 2. Configuration et compilation
 cmake -B build -G Ninja -DCMAKE_BUILD_TYPE=Release
 cmake --build build --config Release
 
-# Lancement
+# 3. Lancer l'application
 ./build/tpe
 ```
 
-### Sous Windows (MinGW-w64 / MSYS2)
-
-Dans un terminal MSYS2 MinGW64 :
-
-```bash
-# Installation des paquets nécessaires
-pacman -S mingw-w64-x86_64-gcc mingw-w64-x86_64-cmake mingw-w64-x86_64-ninja \
-          mingw-w64-x86_64-SDL mingw-w64-x86_64-SDL_ttf mingw-w64-x86_64-qt5-base
-
-# Compilation
-cmake -B build -G Ninja -DCMAKE_BUILD_TYPE=Release
-cmake --build build --config Release
-```
-
-### Sous CLion (JetBrains)
-
-Le projet est nativement compatible avec **CLion** :
-1. `Fichier` > `Ouvrir...` > Sélectionner le dossier racine du projet `TPE`.
-2. Définir le chemin vers votre installation de Qt dans les paramètres CMake de CLion :
-   - Ouvrir **Paramètres (Ctrl+Alt+S)** > **Build, Execution, Deployment** > **CMake**.
-   - Dans le profil sélectionné (ex. `Debug` ou `cmake-build-debug-mingw`), ajouter dans le champ **CMake options** :
-     ```
-     -DCMAKE_PREFIX_PATH=C:/chemin/vers/votre/Qt
-     ```
-     *(Exemple : `-DCMAKE_PREFIX_PATH=C:/Qt/6.7.0/mingw_64` ou `-DCMAKE_PREFIX_PATH=C:/msys64/mingw64`)*
-3. Recharger le projet CMake (`CMake` > `Reload CMake Project`).
-4. Cliquer sur le bouton **Exécuter** (Run `tpe`). Les images et polices sont copiées automatiquement dans le répertoire de sortie lors de la compilation.
-
 ---
 
-## Création de l'Installeur Windows (Inno Setup)
+### 5. Génération de l'Installeur Windows (Inno Setup)
 
-Pour générer l'installeur binaire sous Windows :
+Pour générer l'installeur autonome `dist/tpe-setup-v1.5.exe` :
 
 ```powershell
-# Préparer le dossier dist/tpe-windows
-mkdir -p dist/tpe-windows
-cp build/tpe.exe dist/tpe-windows/
-cp -r images assets examples LICENSE OFL.txt README.md dist/tpe-windows/
+# 1. Préparer le dossier de distribution portable
+New-Item -ItemType Directory -Force -Path dist\tpe-windows
+Copy-Item cmake-build-debug-mingw\tpe.exe dist\tpe-windows\ -Force
+Copy-Item cmake-build-debug-mingw\*.dll dist\tpe-windows\ -Force
+Copy-Item -Recurse -Force images dist\tpe-windows\
+Copy-Item -Recurse -Force assets dist\tpe-windows\
+Copy-Item -Recurse -Force examples dist\tpe-windows\
+Copy-Item -Recurse -Force cmake-build-debug-mingw\platforms dist\tpe-windows\
+Copy-Item LICENSE, OFL.txt, README.md dist\tpe-windows\ -Force
 
-# Déployer les dépendances Qt et runtime MinGW
-windeployqt dist/tpe-windows/tpe.exe
-
-# Compiler l'installeur Inno Setup
-& "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" innosetup/tpe_setup.iss
+# 2. Compiler l'installeur Inno Setup
+& "${env:LOCALAPPDATA}\Programs\Inno Setup 6\ISCC.exe" innosetup\tpe_setup.iss
+# Ou si installé dans Program Files :
+# & "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe" innosetup\tpe_setup.iss
 ```
 
-L'installeur `tpe-setup-v1.5.exe` sera généré dans le dossier `dist/`.
+L'installeur final est produit dans `dist/tpe-setup-v1.5.exe`.
 
 ---
 
-## Licence
+## Raccourcis et Commandes
 
-- Code source : [MIT License](LICENSE) (Créé par fromtherags en 2014)
-- Polices de caractères : [SIL Open Font License 1.1](OFL.txt) (Droid Sans, Patrick Hand)
-- Graphismes et illustrations : 100% Libres de droits (CC0 / Domaine Public)
+| Raccourci | Action |
+|---|---|
+| **F11** | Basculer en mode Plein Écran (Qt & SDL) |
+| **Échap** | Quitter le plein écran / Revenir au menu principal |
+| **Ctrl+O** | Ouvrir un scénario de simulation (`.txt`) |
+| **Ctrl+S** | Sauvegarder les paramètres actuels (`.txt`) |
+| **Ctrl+P** | Lancer la présentation interactive SDL 1.2 |
+| **Ctrl+I** | Afficher l'aide du mode interactif |
+| **Espace / Flèche Droite** | Avancer dans les bulles de dialogue de la présentation SDL |
+| **Flèche Gauche** | Reculer dans les bulles de dialogue de la présentation SDL |
+
+---
+
+## Licence & Crédits
+
+- **Code source** : [MIT License](LICENSE) — Créé par fromtherags en 2014.
+- **Polices de caractères** : [SIL Open Font License 1.1](OFL.txt) (Patrick Hand, Droid Sans).
+- **Ressources graphiques** : Fichiers d'origine avec mentions de nom remplacées par *Créé par fromtherags en 2014* et rendu uniformisé.

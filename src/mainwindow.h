@@ -6,6 +6,9 @@
 #include <QDoubleSpinBox>
 #include <QLabel>
 #include <QMouseEvent>
+#include <QKeyEvent>
+#include <QResizeEvent>
+#include <QAction>
 
 class ClickableAreaWidget : public QWidget
 {
@@ -39,8 +42,16 @@ public slots:
     void nuclo();
     void interactif();
     void lancerPresentationSDL();
+    void toggleFullScreen();
+
+protected:
+    void keyPressEvent(QKeyEvent *event) override;
+    void resizeEvent(QResizeEvent *event) override;
 
 private:
+    QWidget *contentContainer;
+    QAction *actionPleinEcran;
+
     QDoubleSpinBox *box1bis; // Nombre d'éoliennes
     QDoubleSpinBox *box1;    // Diamètre du rotor (m)
     QDoubleSpinBox *box2;    // Vitesse moyenne du vent (m/s)
