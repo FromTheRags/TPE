@@ -100,10 +100,17 @@ cmake --build build --config Release
 
 ### Sous CLion (JetBrains)
 
-Le projet s'ouvre directement dans **CLion** :
+Le projet est nativement compatible avec **CLion** :
 1. `Fichier` > `Ouvrir...` > Sélectionner le dossier racine du projet `TPE`.
-2. CLion détecte automatiquement `CMakeLists.txt` et configure l'environnement.
-3. Cliquer sur le bouton **Exécuter** (Run `tpe`). Les images et polices sont copiées automatiquement dans le répertoire de sortie lors de la compilation.
+2. Définir le chemin vers votre installation de Qt dans les paramètres CMake de CLion :
+   - Ouvrir **Paramètres (Ctrl+Alt+S)** > **Build, Execution, Deployment** > **CMake**.
+   - Dans le profil sélectionné (ex. `Debug` ou `cmake-build-debug-mingw`), ajouter dans le champ **CMake options** :
+     ```
+     -DCMAKE_PREFIX_PATH=C:/chemin/vers/votre/Qt
+     ```
+     *(Exemple : `-DCMAKE_PREFIX_PATH=C:/Qt/6.7.0/mingw_64` ou `-DCMAKE_PREFIX_PATH=C:/msys64/mingw64`)*
+3. Recharger le projet CMake (`CMake` > `Reload CMake Project`).
+4. Cliquer sur le bouton **Exécuter** (Run `tpe`). Les images et polices sont copiées automatiquement dans le répertoire de sortie lors de la compilation.
 
 ---
 

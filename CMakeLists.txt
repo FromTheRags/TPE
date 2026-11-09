@@ -9,8 +9,50 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
 
+# Auto-detect common Qt installations on Windows if not already in CMAKE_PREFIX_PATH
+if(WIN32)
+    file(GLOB _QT_SEARCH_DIRS
+        "C:/Qt/*/*/mingw*"
+        "C:/Qt/*/mingw*"
+        "C:/Qt/*/*/msvc*"
+        "C:/Qt/*/msvc*"
+        "C:/Qt/*"
+        "C:/msys64/mingw64"
+        "C:/msys64/ucrt64"
+        "$ENV{QTDIR}"
+        "$ENV{Qt6_DIR}"
+        "$ENV{Qt5_DIR}"
+    )
+    foreach(_DIR ${_QT_SEARCH_DIRS})
+        if(EXISTS "${_DIR}/lib/cmake/Qt6" OR EXISTS "${_DIR}/lib/cmake/Qt5" OR EXISTS "${_DIR}/bin/qmake.exe")
+            message(STATUS "Auto-detected Qt directory: ${_DIR}")
+            list(APPEND CMAKE_PREFIX_PATH "${_DIR}")
+        endif()
+    endforeach()
+endif()
+
 # Find Qt (support Qt6 or Qt5)
-find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Widgets)
+find_package(QT NAMES Qt6 Qt5 COMPONENTS Widgets)
+
+if(NOT QT_FOUND)
+    message(FATAL_ERROR
+        "\n================================================================================\n"
+        " [ERREUR] Qt (Qt5 ou Qt6 avec le module Widgets) n'a pas été trouvé !\n\n"
+        " Pour résoudre cette erreur dans CLion :\n\n"
+        " 1. Si Qt est déjà installé sur votre machine (ex: C:/Qt/6.x/mingw_64 ou C:/msys64/mingw64) :\n"
+        "    Dans CLion -> File -> Settings -> Build, Execution, Deployment -> CMake\n"
+        "    Dans 'CMake options', ajoutez :\n"
+        "       -DCMAKE_PREFIX_PATH=C:/chemin/vers/votre/Qt\n"
+        "    (Exemple : -DCMAKE_PREFIX_PATH=C:/Qt/6.7.0/mingw_64 ou C:/msys64/mingw64)\n\n"
+        " 2. Si Qt n'est pas encore installé pour MinGW :\n"
+        "    - Via MSYS2 (recommandé si vous utilisez MinGW) :\n"
+        "      pacman -S mingw-w64-x86_64-qt5-base\n"
+        "    - Ou via l'installateur officiel Qt (https://www.qt.io/download-qt-installer)\n"
+        "      en cochant les composants MinGW correspondant à votre version.\n"
+        "================================================================================\n"
+    )
+endif()
+
 find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets)
 
 message(STATUS "Found Qt version: ${Qt${QT_VERSION_MAJOR}_VERSION}")
