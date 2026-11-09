@@ -1,6 +1,17 @@
 cmake_minimum_required(VERSION 3.16)
 project(TPE VERSION 1.5.0 LANGUAGES C CXX)
 
+if(WIN32)
+    if(NOT CMAKE_RC_COMPILER OR CMAKE_RC_COMPILER STREQUAL "windres")
+        get_filename_component(_C_COMPILER_DIR "${CMAKE_C_COMPILER}" DIRECTORY)
+        find_program(_RC_FOUND NAMES windres.exe windres HINTS "${_C_COMPILER_DIR}")
+        if(_RC_FOUND)
+            set(CMAKE_RC_COMPILER "${_RC_FOUND}" CACHE FILEPATH "Resource compiler" FORCE)
+        endif()
+    endif()
+    enable_language(RC)
+endif()
+
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
@@ -118,9 +129,7 @@ target_link_libraries(tpe PRIVATE
     ${SDL_LIBRARY}
 )
 
-if(SDLMAIN_LIBRARY)
-    target_link_libraries(tpe PRIVATE ${SDLMAIN_LIBRARY})
-endif()
+target_compile_definitions(tpe PRIVATE SDL_MAIN_HANDLED)
 
 # Copy images and assets to the build output directory for CLion / out-of-source builds
 add_custom_command(TARGET tpe POST_BUILD

@@ -48,6 +48,7 @@ Makefile*
 
 # Inno Setup output directory
 dist/
+*.log
 Output/
 
 # Windows desktop.ini & Thumbs.db

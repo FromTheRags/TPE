@@ -17,7 +17,8 @@ jobs:
       - name: Install dependencies (SDL 1.2 & Qt)
         run: |
           sudo apt-get update
-          sudo apt-get install -y libsdl1.2-dev libsdl-ttf2.0-dev qtbase5-dev qttools5-dev-tools cmake ninja-build build-essential
+          sudo apt-get install -y libsdl1.2-dev libsdl-ttf2.0-dev qtbase5-dev qttools5-dev-tools cmake ninja-build build-essential || \
+          sudo apt-get install -y libsdl1.2-compat-dev libsdl-ttf2.0-dev qt6-base-dev qt6-tools-dev cmake ninja-build build-essential
 
       - name: Configure CMake
         run: cmake -B build -G Ninja -DCMAKE_BUILD_TYPE=Release
@@ -59,6 +60,7 @@ jobs:
             mingw-w64-x86_64-SDL
             mingw-w64-x86_64-SDL_ttf
             mingw-w64-x86_64-qt5-base
+            mingw-w64-x86_64-qt5-tools
 
       - name: Configure CMake
         shell: msys2 {0}
@@ -76,16 +78,30 @@ jobs:
           cp -r images assets dist/tpe-windows/
           if [ -d "examples" ]; then cp -r examples dist/tpe-windows/; fi
           cp LICENSE OFL.txt README.md dist/tpe-windows/
-          cmake -DEXECUTABLE="$PWD/build/tpe.exe" -DDESTINATION="$PWD/dist/tpe-windows" -DMINGW_BIN_DIR=/mingw64/bin -P cmake/CopyRuntimeDependencies.cmake
-          # Copy Qt platforms plugin for Windows
-          mkdir -p dist/tpe-windows/platforms
-          cp /mingw64/share/qt5/plugins/platforms/qwindows.dll dist/tpe-windows/platforms/ || cp /mingw64/plugins/platforms/qwindows.dll dist/tpe-windows/platforms/ || true
+          # Deploy Qt dependencies using windeployqt
+          windeployqt --no-translations dist/tpe-windows/tpe.exe || true
+          # Copy MinGW and SDL runtime DLLs
+          cp /mingw64/bin/SDL.dll dist/tpe-windows/ 2>/dev/null || true
+          cp /mingw64/bin/SDL_ttf.dll dist/tpe-windows/ 2>/dev/null || true
+          cp /mingw64/bin/libgcc_s_seh-1.dll dist/tpe-windows/ 2>/dev/null || true
+          cp /mingw64/bin/libstdc++-6.dll dist/tpe-windows/ 2>/dev/null || true
+          cp /mingw64/bin/libwinpthread-1.dll dist/tpe-windows/ 2>/dev/null || true
           cd dist && cmake -E tar cf ../tpe-windows-x64.zip --format=zip tpe-windows
+
+      - name: Install Inno Setup
+        shell: pwsh
+        run: |
+          if (-not (Get-Command iscc.exe -ErrorAction SilentlyContinue) -and -not (Test-Path "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe") -and -not (Test-Path "${env:LOCALAPPDATA}\Programs\Inno Setup 6\ISCC.exe")) {
+            choco install innosetup --no-progress
+          }
 
       - name: Build Inno Setup Installer
         shell: pwsh
         run: |
-          $iscc = Join-Path ${env:ProgramFiles(x86)} 'Inno Setup 6\ISCC.exe'
+          $iscc = Get-Command iscc.exe -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Source
+          if (-not $iscc -or -not (Test-Path $iscc)) {
+            $iscc = Join-Path ${env:ProgramFiles(x86)} 'Inno Setup 6\ISCC.exe'
+          }
           if (-not (Test-Path $iscc)) {
             $iscc = Join-Path ${env:ProgramFiles} 'Inno Setup 6\ISCC.exe'
           }
