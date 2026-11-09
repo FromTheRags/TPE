@@ -9,15 +9,16 @@ Ce projet modernisé compile nativement sous **Windows** et **Linux**, est 100% 
 ## Fonctionnalités
 
 1. **Simulateur de Production Énergétique (Qt)** :
-   - **Schéma paysager interactif** cliquable représentant les différentes sources d'énergie (*Éolien, Solaire photovoltaïque, Nucléaire, Thermique, Géothermie, Hydroélectricité, Biomasse*).
-   - **Mode Plein Écran** : bascule dynamique via la touche **F11**, le menu **Affichage > Plein écran**, ou sortie via **Échap**. Affichage centré avec rendu d'arrière-plan uniforme adapté aux écrans 1080p, 1440p et 4K.
+   - **Design initial authentique (2014-2015)** : interface compacte et fidèle (1100x580) avec l'image paysagère d'origine `ENR5.png` restaurée sans artefact ni pixellisation, et cadre de résultat en relief.
+   - **Infobulles au survol** : affichage immédiat d'un texte explicatif riche (titre et description de chaque filière énergétique) au survol de chaque zone du schéma paysager (*Éolien, Solaire photovoltaïque, Nucléaire, Thermique, Géothermie, Hydroélectricité, Biomasse*).
+   - **Mode Plein Écran** : bascule dynamique en plein écran via la touche **F11** (sortie via **Échap** ou **F11**).
    - **Paramétrage en temps réel** :
-     - *Éolien* : nombre d'éoliennes, diamètre de rotor, vitesse moyenne du vent, heures annuelles (formule avec limite théorique de Betz à 16/27).
+     - *Éolien* : nombre d'éoliennes, diamètre de rotor, vitesse moyenne du vent, heures annuelles (formule avec limite théorique de Betz à 16/27 et facteur 0.70).
      - *Solaire photovoltaïque* : surface de captage, rendement des modules, ensoleillement global, coefficient de performance global (Cp).
      - *Nucléaire* : puissance unitaire des réacteurs, nombre de tranches en exploitation, facteur de disponibilité moyen (85%).
    - **Calcul dynamique** et conversion automatique de la production annuelle globale (Wh, kWh, MWh, GWh, TWh).
-   - **Importation et exportation** des scénarios de simulation au format texte (`.txt`).
-   - **Fiches thématiques documentées** : potentiel éolien français, évolution des aérogénérateurs, irradiation solaire globale, cartographie complète des 19 centrales nucléaires françaises.
+   - **Importation et exportation** des scénarios de simulation au format texte (`.txt`), compatible avec les fichiers d'origine.
+   - **Fiches thématiques authentiques (HTML)** : reprise intégrale des fiches d'origine sous `QTextBrowser` plein écran pour l'éolien, le solaire photovoltaïque et le nucléaire, avec formules mathématiques, sources et images d'époque.
 
 2. **Module de Présentation Interactive (SDL 1.2)** :
    - Accessible depuis le menu de l'application (**Ctrl+P**).
@@ -189,14 +190,11 @@ L'installeur final est produit dans `dist/tpe-setup-v1.5.exe`.
 
 | Raccourci | Action |
 |---|---|
-| **F11** | Basculer en mode Plein Écran (Qt & SDL) |
-| **Échap** | Quitter le plein écran / Revenir au menu principal |
+| **F11** | Basculer en mode Plein Écran |
+| **Échap** | Quitter le mode Plein Écran |
 | **Ctrl+O** | Ouvrir un scénario de simulation (`.txt`) |
 | **Ctrl+S** | Sauvegarder les paramètres actuels (`.txt`) |
-| **Ctrl+P** | Lancer la présentation interactive SDL 1.2 |
-| **Ctrl+I** | Afficher l'aide du mode interactif |
-| **Espace / Flèche Droite** | Avancer dans les bulles de dialogue de la présentation SDL |
-| **Flèche Gauche** | Reculer dans les bulles de dialogue de la présentation SDL |
+| **Ctrl+Q** | Quitter l'application |
 
 ---
 

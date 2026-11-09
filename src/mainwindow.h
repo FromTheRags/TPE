@@ -8,7 +8,6 @@
 #include <QMouseEvent>
 #include <QKeyEvent>
 #include <QResizeEvent>
-#include <QAction>
 
 class ClickableAreaWidget : public QWidget
 {
@@ -41,7 +40,6 @@ public slots:
     void photov();
     void nuclo();
     void interactif();
-    void lancerPresentationSDL();
     void toggleFullScreen();
 
 protected:
@@ -50,7 +48,6 @@ protected:
 
 private:
     QWidget *contentContainer;
-    QAction *actionPleinEcran;
 
     QDoubleSpinBox *box1bis; // Nombre d'éoliennes
     QDoubleSpinBox *box1;    // Diamètre du rotor (m)
