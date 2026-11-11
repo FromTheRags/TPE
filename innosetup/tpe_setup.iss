@@ -1,8 +1,11 @@
-; Inno Setup Script for TPE - Simulateur d'Energies
+﻿; Inno Setup Script for TPE - Simulateur d'Energies
 ; SEE THE DOCUMENTATION FOR DETAILS ON CREATING INNO SETUP SCRIPT FILES!
 
 #define MyAppName "TPE - Simulateur d'Energies"
-#define MyAppVersion "1.5"
+; The CI passes /DMyAppVersion=<tag version>; local builds fall back to 1.5
+#ifndef MyAppVersion
+  #define MyAppVersion "1.5"
+#endif
 #define MyAppPublisher "FromTheRags"
 #define MyAppURL "https://github.com/FromTheRags/TPE"
 #define MyAppExeName "tpe.exe"
@@ -16,6 +19,8 @@ AppPublisherURL={#MyAppURL}
 AppSupportURL={#MyAppURL}
 AppUpdatesURL={#MyAppURL}
 DefaultDirName={autopf}\TPE
+PrivilegesRequired=lowest
+PrivilegesRequiredOverridesAllowed=dialog
 DefaultGroupName=TPE Simulateur
 OutputDir=..\dist
 OutputBaseFilename=tpe-setup-v{#MyAppVersion}
@@ -44,7 +49,6 @@ Source: "..\dist\tpe-windows\generic\*"; DestDir: "{app}\generic"; Flags: ignore
 Source: "..\dist\tpe-windows\tls\*"; DestDir: "{app}\tls"; Flags: ignoreversion recursesubdirs createallsubdirs skipifsourcedoesntexist
 Source: "..\dist\tpe-windows\*.dll"; DestDir: "{app}"; Flags: ignoreversion skipifsourcedoesntexist
 Source: "..\dist\tpe-windows\LICENSE"; DestDir: "{app}"; Flags: ignoreversion
-Source: "..\dist\tpe-windows\OFL.txt"; DestDir: "{app}"; Flags: ignoreversion
 Source: "..\dist\tpe-windows\README.md"; DestDir: "{app}"; Flags: ignoreversion
 
 [Icons]

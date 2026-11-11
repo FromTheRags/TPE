@@ -1,0 +1,333 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  TPE - Paysage des énergies (version vectorielle de ENR5.png)
+  Créé par fromtherags. Même cadrage que l'original 830x528 : les zones
+  cliquables du programme (coordonnées 830x528) restent alignées.
+  Compatible SVG Tiny 1.2 (rendu par QtSvg) : pas de filtres ni de CSS.
+-->
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+     version="1.2" baseProfile="tiny" width="830" height="528" viewBox="0 0 830 528">
+  <title>Paysage des énergies</title>
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#b9e0fb"/>
+      <stop offset="1" stop-color="#def2fe"/>
+    </linearGradient>
+    <radialGradient id="sunGrad" cx="0.4" cy="0.38" r="0.65">
+      <stop offset="0" stop-color="#fff59a"/>
+      <stop offset="0.55" stop-color="#ffd23a"/>
+      <stop offset="1" stop-color="#f7a90f"/>
+    </radialGradient>
+    <linearGradient id="farHill" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#a5d63a"/>
+      <stop offset="1" stop-color="#8cc420"/>
+    </linearGradient>
+    <linearGradient id="field" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#93c91f"/>
+      <stop offset="1" stop-color="#7fb915"/>
+    </linearGradient>
+    <linearGradient id="fieldDark" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#86bd18"/>
+      <stop offset="1" stop-color="#6aa20e"/>
+    </linearGradient>
+    <linearGradient id="tower" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#cfc3ad"/>
+      <stop offset="0.45" stop-color="#f6efe2"/>
+      <stop offset="1" stop-color="#bfb197"/>
+    </linearGradient>
+    <linearGradient id="pipe" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#b9c2cc"/>
+      <stop offset="0.45" stop-color="#ffffff"/>
+      <stop offset="1" stop-color="#9aa5b1"/>
+    </linearGradient>
+    <linearGradient id="panel" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#5d7ea8"/>
+      <stop offset="1" stop-color="#1f3657"/>
+    </linearGradient>
+    <linearGradient id="water" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#7fb6ee"/>
+      <stop offset="1" stop-color="#5b97dc"/>
+    </linearGradient>
+
+    <!-- Éolienne : moyeu en (0,0), mât jusqu'à y=60 -->
+    <g id="windmill">
+      <path d="M-1.1,1.5 L1.1,1.5 L2,42 L-2,42 Z" fill="#f4f6f7" stroke="#8d989f" stroke-width="0.6"/>
+      <path d="M0,0 C2,-4 1.8,-13 0.5,-20 L-0.7,-20 C-1.3,-12 -1.6,-5 0,0 Z" fill="#ffffff" stroke="#87929a" stroke-width="0.6"/>
+      <path d="M0,0 C2,-4 1.8,-13 0.5,-20 L-0.7,-20 C-1.3,-12 -1.6,-5 0,0 Z" fill="#ffffff" stroke="#87929a" stroke-width="0.6" transform="rotate(120)"/>
+      <path d="M0,0 C2,-4 1.8,-13 0.5,-20 L-0.7,-20 C-1.3,-12 -1.6,-5 0,0 Z" fill="#ffffff" stroke="#87929a" stroke-width="0.6" transform="rotate(240)"/>
+      <rect x="-1.8" y="-1.6" width="4.6" height="3.2" rx="1.2" fill="#e3e8eb" stroke="#87929a" stroke-width="0.5"/>
+      <circle cx="0" cy="0" r="1.3" fill="#c9d1d6"/>
+    </g>
+
+    <!-- Arbre : pied en (0,0) -->
+    <g id="tree">
+      <rect x="-1.6" y="-9" width="3.2" height="9" fill="#7a5530"/>
+      <ellipse cx="0" cy="-17" rx="7.5" ry="11" fill="#4f9a1e"/>
+      <ellipse cx="-2.2" cy="-19.5" rx="4.2" ry="6.5" fill="#6cb82c"/>
+    </g>
+
+    <!-- Fumée / vapeur : centre en (0,0) -->
+    <g id="smoke">
+      <circle cx="-9" cy="4" r="9" fill="#e9eef0"/>
+      <circle cx="8" cy="5" r="8" fill="#e9eef0"/>
+      <circle cx="0" cy="-5" r="11" fill="#f7f9fa"/>
+      <circle cx="-11" cy="-8" r="7" fill="#f7f9fa"/>
+      <circle cx="10" cy="-9" r="7.5" fill="#ffffff"/>
+      <circle cx="1" cy="-17" r="8" fill="#ffffff"/>
+    </g>
+
+    <!-- Bulle numérotée : pointe en bas, centre en (0,0) -->
+    <g id="bubble">
+      <path d="M-6,20 L0,31 L6,20 Z" fill="#ffffff" stroke="#2b2b2b" stroke-width="2.4" stroke-linejoin="round"/>
+      <ellipse cx="0" cy="0" rx="22" ry="23" fill="#ffffff" stroke="#2b2b2b" stroke-width="2.6"/>
+      <path d="M-6,18.5 L0,27 L6,18.5 Z" fill="#ffffff"/>
+      <ellipse cx="-6" cy="-8" rx="10" ry="6" fill="#f2f4f5"/>
+    </g>
+
+    <!-- Panneau photovoltaïque (parallélogramme 64x20) -->
+    <g id="solarPanel">
+      <path d="M4,0 L68,0 L64,20 L0,20 Z" fill="url(#panel)" stroke="#16263d" stroke-width="1"/>
+      <path d="M20,0 L16,20 M36,0 L32,20 M52,0 L48,20 M2,10 L66,10" stroke="#9db7d6" stroke-width="0.7" fill="none"/>
+      <path d="M4,0 L68,0" stroke="#c6d6ea" stroke-width="1.4"/>
+      <path d="M2,20 L62,20 L62,23 L2,23 Z" fill="#5c6670"/>
+    </g>
+  </defs>
+
+  <!-- ================= Ciel et soleil ================= -->
+  <rect x="0" y="0" width="830" height="528" fill="url(#sky)"/>
+
+  <g transform="translate(67,64)">
+    <g fill="#ffcf2e" stroke="#f3a712" stroke-width="1">
+      <path d="M-6,-30 L0,-44 L6,-30 Z"/>
+      <path d="M-6,-30 L0,-44 L6,-30 Z" transform="rotate(45)"/>
+      <path d="M-6,-30 L0,-44 L6,-30 Z" transform="rotate(90)"/>
+      <path d="M-6,-30 L0,-44 L6,-30 Z" transform="rotate(135)"/>
+      <path d="M-6,-30 L0,-44 L6,-30 Z" transform="rotate(180)"/>
+      <path d="M-6,-30 L0,-44 L6,-30 Z" transform="rotate(225)"/>
+      <path d="M-6,-30 L0,-44 L6,-30 Z" transform="rotate(270)"/>
+      <path d="M-6,-30 L0,-44 L6,-30 Z" transform="rotate(315)"/>
+    </g>
+    <circle cx="0" cy="0" r="24" fill="url(#sunGrad)" stroke="#f3a712" stroke-width="1.2"/>
+  </g>
+
+  <!-- ================= Montagnes ================= -->
+  <!-- chaîne du fond -->
+  <path d="M548,175 L604,98 L630,112 L668,62 L694,80 L722,40 L746,58 L772,12 L798,42 L830,28 L830,250 L548,250 Z" fill="#9cc77c"/>
+  <path d="M548,175 L604,98 L630,112 L668,62 L694,80 L722,40 L746,58 L772,12 L798,42 L830,28" fill="none" stroke="#8ab86a" stroke-width="1.2"/>
+  <!-- faces rocheuses -->
+  <path d="M668,62 L694,80 L688,128 L660,150 Z" fill="#c9a483"/>
+  <path d="M722,40 L746,58 L742,110 L716,126 Z" fill="#bf9a78"/>
+  <path d="M772,12 L798,42 L806,100 L780,120 L768,70 Z" fill="#c8a07c"/>
+  <path d="M798,42 L830,28 L830,110 L806,100 Z" fill="#b48d6c"/>
+  <path d="M604,98 L630,112 L626,150 L598,160 Z" fill="#c4a283"/>
+  <!-- neige -->
+  <path d="M772,12 L784,26 L778,24 L772,32 L766,24 L760,28 Z" fill="#ffffff"/>
+  <path d="M722,40 L732,48 L726,50 L720,56 L714,50 Z" fill="#ffffff"/>
+  <path d="M668,62 L677,70 L671,72 L665,78 L661,72 Z" fill="#f4f8fa"/>
+  <!-- contreforts verts -->
+  <path d="M548,175 L590,128 L616,142 L650,108 L676,140 L700,118 L734,160 L768,120 L800,150 L830,135 L830,270 L548,270 Z" fill="#7fbb36"/>
+  <path d="M650,108 L676,140 L664,175 L640,170 Z" fill="#6aa52a"/>
+  <path d="M768,120 L800,150 L790,190 L764,182 Z" fill="#649e26"/>
+  <path d="M700,118 L734,160 L716,180 Z" fill="#6aa52a"/>
+
+  <!-- ================= Collines et prairies ================= -->
+  <!-- colline du fond (horizon) -->
+  <path d="M0,206 C110,214 240,214 330,201 C420,188 490,176 556,148 C600,136 640,168 690,190 C740,208 790,214 830,212 L830,528 L0,528 Z" fill="url(#farHill)"/>
+  <!-- liseré clair de l'horizon -->
+  <path d="M0,206 C110,214 240,214 330,201 C420,188 490,176 556,148" fill="none" stroke="#c4ea6a" stroke-width="2.2"/>
+  <!-- prairie centrale -->
+  <path d="M0,300 C120,268 230,250 340,240 C460,230 560,228 640,214 C710,202 770,196 830,190 L830,528 L0,528 Z" fill="url(#field)"/>
+  <!-- prairie de premier plan -->
+  <path d="M0,410 C140,396 300,392 420,392 C560,392 690,370 830,352 L830,528 L0,528 Z" fill="url(#fieldDark)"/>
+  <path d="M470,528 C520,470 600,440 700,436 C760,434 800,430 830,428 L830,528 Z" fill="#79b316"/>
+  <!-- forêt de droite -->
+  <g fill="#3f8a1a">
+    <circle cx="772" cy="282" r="14"/><circle cx="790" cy="270" r="15"/><circle cx="810" cy="276" r="15"/>
+    <circle cx="828" cy="268" r="14"/><circle cx="764" cy="300" r="13"/><circle cx="784" cy="296" r="15"/>
+    <circle cx="806" cy="298" r="15"/><circle cx="826" cy="292" r="13"/><circle cx="780" cy="318" r="12"/>
+    <circle cx="802" cy="318" r="13"/><circle cx="824" cy="314" r="12"/>
+  </g>
+  <g fill="#5aa626">
+    <circle cx="784" cy="266" r="7"/><circle cx="806" cy="270" r="7"/><circle cx="776" cy="292" r="7"/>
+    <circle cx="800" cy="292" r="7"/><circle cx="820" cy="286" r="6"/><circle cx="796" cy="312" r="6"/>
+  </g>
+
+  <!-- ================= Rivière ================= -->
+  <path d="M830,118 C800,128 780,136 758,148 C730,170 700,190 640,204 C560,222 480,226 400,238 C320,250 258,280 196,312 C136,342 70,370 0,386"
+        fill="none" stroke="#4f8fd6" stroke-width="16" stroke-linecap="round"/>
+  <path d="M830,118 C800,128 780,136 758,148 C730,170 700,190 640,204 C560,222 480,226 400,238 C320,250 258,280 196,312 C136,342 70,370 0,386"
+        fill="none" stroke="url(#water)" stroke-width="11" stroke-linecap="round"/>
+  <path d="M760,152 C730,172 700,190 640,203 C560,220 480,224 400,236 C320,248 258,278 196,310 C136,340 70,368 0,383"
+        fill="none" stroke="#b5d8f8" stroke-width="2" stroke-linecap="round" stroke-dasharray="26 18"/>
+
+  <!-- ================= Routes ================= -->
+  <g fill="none" stroke-linecap="round">
+    <path d="M0,456 C90,440 170,412 252,394 C330,378 420,396 500,386 C600,374 700,352 830,344" stroke="#c9d3c4" stroke-width="13"/>
+    <path d="M0,346 C60,362 104,392 146,420" stroke="#c9d3c4" stroke-width="12"/>
+    <path d="M0,456 C90,440 170,412 252,394 C330,378 420,396 500,386 C600,374 700,352 830,344" stroke="#f1f4ef" stroke-width="9"/>
+    <path d="M0,346 C60,362 104,392 146,420" stroke="#f1f4ef" stroke-width="8"/>
+  </g>
+
+  <!-- ================= 6 : Centrale hydroélectrique (barrage) ================= -->
+  <g>
+    <path d="M736,128 C748,134 760,146 766,160 L762,206 C754,190 742,178 728,170 Z" fill="#c9c2b5" stroke="#8f877a" stroke-width="1.2"/>
+    <path d="M740,134 C750,140 758,150 762,160" fill="none" stroke="#e6e0d6" stroke-width="2"/>
+    <!-- chute d'eau -->
+    <path d="M744,150 C746,165 748,178 752,196 L740,192 C738,178 736,166 734,154 Z" fill="#d9eefc"/>
+    <path d="M738,158 L742,190 M746,156 L749,192" stroke="#ffffff" stroke-width="1.6"/>
+    <!-- usine -->
+    <path d="M674,176 L708,176 L708,196 L674,196 Z" fill="#b9bfc5" stroke="#7d858c" stroke-width="1"/>
+    <path d="M672,176 L691,168 L710,176 Z" fill="#8f979e"/>
+    <path d="M679,182 h5 v5 h-5 Z M688,182 h5 v5 h-5 Z M697,182 h5 v5 h-5 Z" fill="#5c6670"/>
+  </g>
+
+  <!-- ================= 1 : Parc éolien ================= -->
+  <g>
+    <use xlink:href="#windmill" transform="translate(226,170)"/>
+    <use xlink:href="#windmill" transform="translate(258,167) scale(0.95)"/>
+    <use xlink:href="#windmill" transform="translate(289,170) scale(0.88)"/>
+    <use xlink:href="#windmill" transform="translate(317,173) scale(0.8)"/>
+    <use xlink:href="#windmill" transform="translate(342,178) scale(0.7)"/>
+    <use xlink:href="#windmill" transform="translate(242,194) scale(0.82)"/>
+    <use xlink:href="#windmill" transform="translate(274,193) scale(0.78)"/>
+    <!-- poste électrique -->
+    <path d="M368,196 L392,196 L392,210 L368,210 Z" fill="#a9b0b6" stroke="#6f777e" stroke-width="1"/>
+    <path d="M372,196 v-6 M380,196 v-8 M388,196 v-6" stroke="#6f777e" stroke-width="1.4"/>
+  </g>
+
+  <!-- ================= 4 : Centrale thermique ================= -->
+  <g>
+    <use xlink:href="#smoke" transform="translate(82,166) scale(1.15)"/>
+    <use xlink:href="#smoke" transform="translate(104,150) scale(0.8)"/>
+    <!-- cheminées rayées -->
+    <g stroke="#7a2a22" stroke-width="0.8">
+      <path d="M62,188 L70,188 L72,262 L60,262 Z" fill="#ffffff"/>
+      <path d="M61,196 L71,196 L71,206 L61,206 Z M61,216 L71,216 L71,226 L61,226 Z M60,236 L72,236 L72,246 L60,246 Z" fill="#d23a2b"/>
+      <path d="M78,192 L86,192 L88,262 L76,262 Z" fill="#ffffff"/>
+      <path d="M77,200 L87,200 L87,210 L77,210 Z M77,220 L87,220 L87,230 L77,230 Z M76,240 L88,240 L88,250 L76,250 Z" fill="#d23a2b"/>
+      <path d="M96,180 L105,180 L107,262 L94,262 Z" fill="#ffffff"/>
+      <path d="M95,188 L106,188 L106,198 L95,198 Z M95,208 L106,208 L106,218 L95,218 Z M94,228 L107,228 L107,238 L94,238 Z" fill="#d23a2b"/>
+    </g>
+    <!-- bâtiments -->
+    <path d="M84,252 L134,252 L134,282 L84,282 Z" fill="#e3cfa9" stroke="#a48a62" stroke-width="1"/>
+    <path d="M84,252 L96,244 L146,244 L134,252 Z" fill="#f1e2c4" stroke="#a48a62" stroke-width="1"/>
+    <path d="M134,252 L146,244 L146,274 L134,282 Z" fill="#c8b18a" stroke="#a48a62" stroke-width="1"/>
+    <path d="M92,260 h8 v8 h-8 Z M106,260 h8 v8 h-8 Z M120,260 h8 v8 h-8 Z" fill="#8a7553"/>
+    <path d="M32,258 L58,258 L58,276 L32,276 Z" fill="#9fc6e6" stroke="#5d86a8" stroke-width="1"/>
+    <path d="M32,258 L40,252 L66,252 L58,258 Z" fill="#c9e1f3" stroke="#5d86a8" stroke-width="1"/>
+    <path d="M58,258 L66,252 L66,270 L58,276 Z" fill="#7ea8cb" stroke="#5d86a8" stroke-width="1"/>
+    <!-- tas de charbon / bois -->
+    <path d="M12,286 C18,272 34,270 44,286 Z" fill="#c8a067" stroke="#8d6b3a" stroke-width="1"/>
+    <path d="M66,298 C74,284 94,282 104,298 Z" fill="#b48c55" stroke="#8d6b3a" stroke-width="1"/>
+  </g>
+
+  <!-- ================= 7 : Centrale biomasse ================= -->
+  <g>
+    <use xlink:href="#smoke" transform="translate(684,240) scale(0.75)"/>
+    <path d="M664,256 L672,256 L674,292 L662,292 Z" fill="#dfe6ec" stroke="#7d8a96" stroke-width="0.8"/>
+    <path d="M676,262 L683,262 L684,292 L675,292 Z" fill="#dfe6ec" stroke="#7d8a96" stroke-width="0.8"/>
+    <path d="M652,290 L702,290 L702,318 L652,318 Z" fill="#a8cbe8" stroke="#5f84a5" stroke-width="1"/>
+    <path d="M652,290 L662,284 L712,284 L702,290 Z" fill="#d3e5f4" stroke="#5f84a5" stroke-width="1"/>
+    <path d="M702,290 L712,284 L712,312 L702,318 Z" fill="#82a9cb" stroke="#5f84a5" stroke-width="1"/>
+    <path d="M658,298 h7 v7 h-7 Z M670,298 h7 v7 h-7 Z M682,298 h7 v7 h-7 Z" fill="#4e6f8d"/>
+    <!-- tas de bois -->
+    <path d="M706,318 C710,300 732,296 740,318 Z" fill="#b5642c" stroke="#7d3f16" stroke-width="1"/>
+    <path d="M714,306 l6,-3 M722,310 l7,-4 M716,314 l8,-3" stroke="#e09a5b" stroke-width="1.4"/>
+  </g>
+
+  <!-- ================= 2 : Centrale nucléaire ================= -->
+  <g>
+    <ellipse cx="452" cy="366" rx="78" ry="20" fill="#a9b99a"/>
+    <use xlink:href="#smoke" transform="translate(408,286) scale(1.35)"/>
+    <use xlink:href="#smoke" transform="translate(480,262) scale(1.5)"/>
+    <!-- tours de refroidissement -->
+    <path d="M386,304 L424,304 C418,322 420,342 432,368 L378,368 C390,342 392,322 386,304 Z" fill="url(#tower)" stroke="#9c8f78" stroke-width="1"/>
+    <ellipse cx="405" cy="304" rx="19" ry="4" fill="#d9cfbe" stroke="#9c8f78" stroke-width="1"/>
+    <path d="M455,284 L501,284 C494,306 496,330 510,358 L446,358 C460,330 462,306 455,284 Z" fill="url(#tower)" stroke="#9c8f78" stroke-width="1"/>
+    <ellipse cx="478" cy="284" rx="23" ry="4.5" fill="#d9cfbe" stroke="#9c8f78" stroke-width="1"/>
+    <!-- réacteurs -->
+    <path d="M430,350 a9,9 0 0 1 18,0 Z" fill="#9fbfe0" stroke="#5f7f9f" stroke-width="1"/>
+    <path d="M428,350 h22 v10 h-22 Z" fill="#c5d6e6" stroke="#5f7f9f" stroke-width="1"/>
+    <!-- salle des machines -->
+    <path d="M438,362 L494,362 L494,382 L438,382 Z" fill="#c4c9cd" stroke="#7b8287" stroke-width="1"/>
+    <path d="M438,362 L446,356 L502,356 L494,362 Z" fill="#dde1e4" stroke="#7b8287" stroke-width="1"/>
+    <path d="M494,362 L502,356 L502,376 L494,382 Z" fill="#a6adb2" stroke="#7b8287" stroke-width="1"/>
+    <path d="M444,367 h7 v5 h-7 Z M456,367 h7 v5 h-7 Z M468,367 h7 v5 h-7 Z M480,367 h7 v5 h-7 Z" fill="#6f7a84"/>
+  </g>
+
+  <!-- ================= Arbres ================= -->
+  <g>
+    <use xlink:href="#tree" transform="translate(576,352) scale(0.75)"/>
+    <use xlink:href="#tree" transform="translate(590,348) scale(0.8)"/>
+    <use xlink:href="#tree" transform="translate(604,350) scale(0.75)"/>
+    <use xlink:href="#tree" transform="translate(618,346) scale(0.8)"/>
+    <use xlink:href="#tree" transform="translate(632,348) scale(0.75)"/>
+    <use xlink:href="#tree" transform="translate(646,344) scale(0.8)"/>
+    <use xlink:href="#tree" transform="translate(548,488) scale(1.25)"/>
+    <use xlink:href="#tree" transform="translate(568,482) scale(1.4)"/>
+    <use xlink:href="#tree" transform="translate(588,492) scale(1.2)"/>
+    <use xlink:href="#tree" transform="translate(604,476) scale(1.05)"/>
+    <use xlink:href="#tree" transform="translate(20,470) scale(0.9)"/>
+  </g>
+
+  <!-- ================= 3 : Panneaux photovoltaïques + maison ================= -->
+  <g>
+    <use xlink:href="#solarPanel" transform="translate(548,380)"/>
+    <use xlink:href="#solarPanel" transform="translate(632,380)"/>
+    <use xlink:href="#solarPanel" transform="translate(548,408)"/>
+    <use xlink:href="#solarPanel" transform="translate(632,408)"/>
+    <use xlink:href="#solarPanel" transform="translate(632,436)"/>
+    <!-- maison -->
+    <path d="M716,420 L770,404 L770,468 L716,470 Z" fill="#e8c79b" stroke="#a07f52" stroke-width="1"/>
+    <path d="M770,404 L826,416 L826,466 L770,468 Z" fill="#f2d8b0" stroke="#a07f52" stroke-width="1"/>
+    <path d="M708,424 L742,382 L796,370 L770,408 Z" fill="#f07a1a" stroke="#b44f0a" stroke-width="1"/>
+    <path d="M770,408 L796,370 L830,410 L830,420 Z" fill="#e0620c" stroke="#b44f0a" stroke-width="1"/>
+    <path d="M742,382 L796,370" stroke="#ffb066" stroke-width="2"/>
+    <!-- panneau solaire en toiture -->
+    <path d="M780,402 L798,378 L822,404 L806,414 Z" fill="url(#panel)" stroke="#16263d" stroke-width="1"/>
+    <path d="M789,390 L813,409 M786,396 L796,383 L804,392 L794,404 Z" stroke="#9db7d6" stroke-width="0.7" fill="none"/>
+    <!-- baie vitrée et porte -->
+    <path d="M724,428 L760,418 L760,466 L724,468 Z" fill="#6d7f8c" stroke="#4a3b2a" stroke-width="1.4"/>
+    <path d="M736,425 L736,467 M748,421 L748,467 M724,446 L760,440" stroke="#4a3b2a" stroke-width="1.2"/>
+    <path d="M790,436 h14 v30 h-14 Z" fill="#8a5a33" stroke="#5e3b1f" stroke-width="1"/>
+    <path d="M810,424 h10 v10 h-10 Z" fill="#bfe1f5" stroke="#5e3b1f" stroke-width="1"/>
+  </g>
+
+  <!-- ================= 5 : Centrale géothermique ================= -->
+  <g>
+    <use xlink:href="#smoke" transform="translate(266,372) scale(0.85)"/>
+    <ellipse cx="200" cy="482" rx="56" ry="13" fill="#9fb5c6" stroke="#6a8293" stroke-width="1"/>
+    <ellipse cx="200" cy="480" rx="46" ry="9" fill="#bfe0f4"/>
+    <!-- tours et conduites -->
+    <path d="M174,418 h12 v70 h-12 Z" fill="url(#pipe)" stroke="#7d8893" stroke-width="0.8"/>
+    <path d="M192,412 h12 v76 h-12 Z" fill="url(#pipe)" stroke="#7d8893" stroke-width="0.8"/>
+    <path d="M210,418 h12 v70 h-12 Z" fill="url(#pipe)" stroke="#7d8893" stroke-width="0.8"/>
+    <path d="M228,424 h12 v64 h-12 Z" fill="url(#pipe)" stroke="#7d8893" stroke-width="0.8"/>
+    <path d="M256,386 h8 v102 h-8 Z" fill="url(#pipe)" stroke="#7d8893" stroke-width="0.8"/>
+    <path d="M168,476 L246,476" stroke="#8e9aa5" stroke-width="4"/>
+    <path d="M164,470 C150,470 150,488 164,488 L244,488" fill="none" stroke="#a7b3bd" stroke-width="3"/>
+    <!-- bâtiment -->
+    <path d="M268,452 L296,452 L296,488 L268,488 Z" fill="#c9cfd4" stroke="#7b8287" stroke-width="1"/>
+    <path d="M268,452 L276,446 L304,446 L296,452 Z" fill="#e1e5e8" stroke="#7b8287" stroke-width="1"/>
+    <path d="M296,452 L304,446 L304,482 L296,488 Z" fill="#a9b0b5" stroke="#7b8287" stroke-width="1"/>
+    <path d="M274,460 h6 v6 h-6 Z M284,460 h6 v6 h-6 Z M274,472 h6 v6 h-6 Z M284,472 h6 v6 h-6 Z" fill="#6f7a84"/>
+  </g>
+
+  <!-- ================= Bulles numérotées ================= -->
+  <g font-family="Segoe UI, Arial, Helvetica, sans-serif" font-size="31" text-anchor="middle" fill="#262626">
+    <use xlink:href="#bubble" transform="translate(387,163)"/>
+    <text x="387" y="174">1</text>
+    <use xlink:href="#bubble" transform="translate(529,308)"/>
+    <text x="529" y="319">2</text>
+    <use xlink:href="#bubble" transform="translate(741,478)"/>
+    <text x="741" y="489">3</text>
+    <use xlink:href="#bubble" transform="translate(146,298)"/>
+    <text x="146" y="309">4</text>
+    <use xlink:href="#bubble" transform="translate(318,490)"/>
+    <text x="318" y="501">5</text>
+    <use xlink:href="#bubble" transform="translate(690,152)"/>
+    <text x="690" y="163">6</text>
+    <use xlink:href="#bubble" transform="translate(744,308)"/>
+    <text x="744" y="319">7</text>
+  </g>
+</svg>

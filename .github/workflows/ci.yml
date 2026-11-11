@@ -1,0 +1,184 @@
+name: CI/CD
+
+# - Every push / pull request: build Linux + Windows (Qt 6), run a start-up
+#   smoke test and upload the packages as workflow artifacts.
+# - Tag "vX.Y.Z" (e.g. v1.6.0): same builds, then a GitHub Release is published
+#   with the Linux tarball, the Windows portable zip and the Windows installer.
+#   Tags containing a "-" (v1.6.0-beta1) are published as pre-releases.
+
+on:
+  push:
+    branches: [ "**" ]
+    tags: [ "v*" ]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  build-linux:
+    name: Linux (Ubuntu, Qt 6)
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install dependencies (Qt 6 + Qt SVG)
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            build-essential cmake ninja-build \
+            qt6-base-dev libqt6svg6-dev libgl1-mesa-dev
+
+      - name: Configure CMake
+        run: cmake -B build -G Ninja -DCMAKE_BUILD_TYPE=Release
+
+      - name: Build
+        run: cmake --build build
+
+      - name: Smoke test (the window must start and stay up)
+        run: |
+          set +e
+          QT_QPA_PLATFORM=offscreen timeout 5 ./build/tpe
+          code=$?
+          # 124 = killed by timeout, i.e. the event loop was running fine
+          if [ "$code" -ne 124 ]; then echo "tpe exited early with code $code"; exit 1; fi
+
+      - name: Package
+        run: |
+          mkdir -p dist/tpe-linux
+          cp build/tpe dist/tpe-linux/
+          cp -r images assets examples dist/tpe-linux/
+          cp LICENSE README.md dist/tpe-linux/
+          tar -C dist -czf tpe-linux-x86_64.tar.gz tpe-linux
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: tpe-linux-x86_64
+          path: tpe-linux-x86_64.tar.gz
+          if-no-files-found: error
+
+  build-windows:
+    name: Windows (MSYS2 MinGW-w64, Qt 6)
+    runs-on: windows-latest
+    defaults:
+      run:
+        shell: msys2 {0}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup MSYS2 MinGW-w64
+        uses: msys2/setup-msys2@v2
+        with:
+          msystem: MINGW64
+          update: true
+          install: >-
+            mingw-w64-x86_64-gcc
+            mingw-w64-x86_64-cmake
+            mingw-w64-x86_64-ninja
+            mingw-w64-x86_64-qt6-base
+            mingw-w64-x86_64-qt6-tools
+            mingw-w64-x86_64-qt6-svg
+
+      - name: Compute version
+        id: version
+        run: |
+          if [[ "$GITHUB_REF" == refs/tags/v* ]]; then
+            v="${GITHUB_REF#refs/tags/v}"
+          else
+            v="$(sed -n 's/^project(TPE VERSION \([0-9.]*\).*/\1/p' CMakeLists.txt)-dev"
+          fi
+          echo "version=$v" >> "$GITHUB_OUTPUT"
+          echo "Version: $v"
+
+      - name: Configure CMake
+        run: cmake -B build -G Ninja -DCMAKE_BUILD_TYPE=Release
+
+      - name: Build
+        run: cmake --build build
+
+      - name: Package portable folder
+        run: |
+          set -e
+          out=dist/tpe-windows
+          mkdir -p "$out"
+          cp build/tpe.exe "$out/"
+          cp -r images assets examples "$out/"
+          cp LICENSE README.md "$out/"
+          # Qt plugins and libraries
+          deploy=$(command -v windeployqt6 || command -v windeployqt-qt6 || command -v windeployqt)
+          "$deploy" --release --no-translations --compiler-runtime "$out/tpe.exe"
+          # Every remaining MinGW runtime dependency (ICU, zstd, freetype...)
+          for i in 1 2 3; do
+            ldd "$out"/*.exe "$out"/*.dll "$out"/*/*.dll 2>/dev/null \
+              | awk '{print $3}' | grep -i '^/mingw64/' | sort -u \
+              | xargs -r -I{} cp -n {} "$out/"
+          done
+          ls "$out"
+
+      - name: Smoke test (the window must start and stay up)
+        run: |
+          set +e
+          # Uses only the deployed files (qwindows platform plugin, runtime DLLs)
+          timeout 5 ./dist/tpe-windows/tpe.exe
+          code=$?
+          if [ "$code" -ne 124 ]; then echo "tpe.exe exited early with code $code"; exit 1; fi
+
+      - name: Zip portable package
+        run: cd dist && cmake -E tar cf ../tpe-windows-x64.zip --format=zip tpe-windows
+
+      - name: Install Inno Setup
+        shell: pwsh
+        run: |
+          if (-not (Test-Path "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe")) {
+            choco install innosetup --no-progress -y
+          }
+
+      - name: Build installer
+        shell: pwsh
+        run: |
+          $iscc = Join-Path ${env:ProgramFiles(x86)} 'Inno Setup 6\ISCC.exe'
+          & $iscc "/DMyAppVersion=${{ steps.version.outputs.version }}" 'innosetup/tpe_setup.iss'
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+      - name: Upload portable artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: tpe-windows-x64
+          path: tpe-windows-x64.zip
+          if-no-files-found: error
+
+      - name: Upload installer artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: tpe-windows-installer
+          path: dist/tpe-setup-*.exe
+          if-no-files-found: error
+
+  release:
+    name: Publish GitHub Release
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: [ build-linux, build-windows ]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Download all packages
+        uses: actions/download-artifact@v4
+        with:
+          path: release-assets
+          merge-multiple: true
+
+      - name: Publish release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: release-assets/*
+          generate_release_notes: true
+          prerelease: ${{ contains(github.ref_name, '-') }}

@@ -25,7 +25,7 @@
 *.a
 *.lib
 
-# Executables (except those tracked in cmake/sdl12 or dist)
+# Executables (except those tracked in dist)
 build/
 cmake-build-*/
 .cache/

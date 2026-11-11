@@ -1,205 +1,184 @@
 # TPE - Simulateur de Production Énergétique
 
-Simulateur interactif modélisant le mix de production électrique en France (**Énergies Renouvelables vs Nucléaire**), combinant une interface graphique riche en **Qt** (Qt 5 / Qt 6) et un module multimédia interactif en **SDL 1.2**.
+Simulateur interactif de la production électrique annuelle d'un parc **éolien**, **photovoltaïque** et **nucléaire**, réalisé en 2014-2015 pour un TPE (Travaux Personnels Encadrés) et modernisé depuis. Il est écrit en **C++ / Qt 6** et fonctionne sous **Windows** et **Linux**.
 
-Ce projet modernisé compile nativement sous **Windows** et **Linux**, est 100% compatible avec **CLion** et **CMake**, intègre des workflows d'intégration continue **GitHub Actions** (CI/CD) et produit un installeur Windows avec **Inno Setup**.
-
----
-
-## Fonctionnalités
-
-1. **Simulateur de Production Énergétique (Qt)** :
-   - **Design initial authentique (2014-2015)** : interface compacte et fidèle (1100x580) avec l'image paysagère d'origine `ENR5.png` restaurée sans artefact ni pixellisation, et cadre de résultat en relief.
-   - **Infobulles au survol** : affichage immédiat d'un texte explicatif riche (titre et description de chaque filière énergétique) au survol de chaque zone du schéma paysager (*Éolien, Solaire photovoltaïque, Nucléaire, Thermique, Géothermie, Hydroélectricité, Biomasse*).
-   - **Mode Plein Écran** : bascule dynamique en plein écran via la touche **F11** (sortie via **Échap** ou **F11**).
-   - **Paramétrage en temps réel** :
-     - *Éolien* : nombre d'éoliennes, diamètre de rotor, vitesse moyenne du vent, heures annuelles (formule avec limite théorique de Betz à 16/27 et facteur 0.70).
-     - *Solaire photovoltaïque* : surface de captage, rendement des modules, ensoleillement global, coefficient de performance global (Cp).
-     - *Nucléaire* : puissance unitaire des réacteurs, nombre de tranches en exploitation, facteur de disponibilité moyen (85%).
-   - **Calcul dynamique** et conversion automatique de la production annuelle globale (Wh, kWh, MWh, GWh, TWh).
-   - **Importation et exportation** des scénarios de simulation au format texte (`.txt`), compatible avec les fichiers d'origine.
-   - **Fiches thématiques authentiques (HTML)** : reprise intégrale des fiches d'origine sous `QTextBrowser` plein écran pour l'éolien, le solaire photovoltaïque et le nucléaire, avec formules mathématiques, sources et images d'époque.
-
-2. **Module de Présentation Interactive (SDL 1.2)** :
-   - Accessible depuis le menu de l'application (**Ctrl+P**).
-   - Présentation interactive avec la mascotte originale *Volt*, bulles explicatives progressives et animation de l'éolienne.
-   - **Support du mode plein écran** : bascule dynamique en plein écran via **F11** ou la touche **F** (sortie via **Échap**).
-   - Rendu d'arrière-plan uniformisé et centré sans bandes disparates.
+- [Partie 1 — Le programme et son aspect scientifique](#partie-1--le-programme-et-son-aspect-scientifique)
+- [Partie 2 — Compiler le projet](#partie-2--compiler-le-projet)
 
 ---
 
-## Organisation du Projet
+# Partie 1 — Le programme et son aspect scientifique
 
-```
-TPE/
-├── .github/
-│   └── workflows/
-│       ├── build.yml               # CI GitHub Actions (Linux & Windows)
-│       └── release.yml             # CD automatique sur tag git
-├── assets/                         # Ressources partagées (icônes, images, polices OFL)
-├── cmake/
-│   ├── CopyRuntimeDependencies.cmake
-│   └── sdl12/                      # Bibliothèques et en-têtes SDL 1.2 Windows (x86 & x64)
-├── dist/                           # Sortie de packaging (installeur .exe, zip portable)
-├── examples/                       # Fichiers de simulation d'exemple (.txt)
-├── images/                         # Graphismes d'origine (PNG, BMP, GIF, ICO)
-├── innosetup/
-│   └── tpe_setup.iss               # Script Inno Setup moderne
-├── scripts/
-│   └── restore_original_assets.py  # Script de traitement et d'uniformisation des assets
-├── src/                            # Dossier source ("source")
-│   ├── main.cpp                    # Point d'entrée de l'application Qt
-│   ├── mainwindow.h / .cpp         # Interface graphique Qt principale, calculs & plein écran
-│   ├── sdl_presentation.h / .cpp   # Module interactif SDL 1.2 & plein écran
-│   ├── utils.h / .cpp              # Résolution robuste et portable des ressources
-│   └── tpe.rc                      # Fichier de ressources Windows (icône binaire)
-├── CMakeLists.txt                  # Configuration CMake multiplateforme (CLion)
-├── LICENSE                         # Licence MIT (Créé par fromtherags en 2014)
-├── OFL.txt                         # Licence SIL Open Font License
-└── README.md
-```
+## Aperçu
 
----
+![Fenêtre principale du simulateur](docs/screenshots/simulateur.png)
 
-## Guide d'Installation pour Rebuild
+*Fenêtre principale : le paysage des sept filières de production, les paramètres des trois filières simulées à droite, et la production annuelle totale en bas.*
 
-Ce guide décrit pas à pas l'installation des dépendances nécessaires pour recompiler le projet sous Windows et Linux.
+| Fiche de calcul (menu **Calculs**) | Écran « À propos » (menu **?**) |
+|---|---|
+| ![Fiche de calcul de l'énergie éolienne](docs/screenshots/fiche_eolien.png) | ![Écran À propos](docs/screenshots/a_propos.png) |
 
-### 1. Prérequis sous Windows
+## Objectif
 
-#### A. Outils généraux & Compilateur
-- **CLion** (qui intègre nativement MinGW GCC, CMake et Ninja dans `bin/mingw/bin`, `bin/cmake/` et `bin/ninja/`).
-- Ou alternativement, **MSYS2** (`C:\msys64`).
+Le programme répond à une question simple : **combien d'électricité produit-on en un an** avec un nombre donné d'éoliennes, une surface de panneaux photovoltaïques et un parc de réacteurs nucléaires ? Il permet de comparer les ordres de grandeur des trois filières en modifiant leurs paramètres et en observant le résultat, recalculé à chaque changement.
 
-#### B. Installation de Qt (recommandé via `aqtinstall`)
-L'outil officiel en ligne de commande `aqtinstall` permet d'installer les bibliothèques Qt précompilées sans installer l'interface graphique volumineuse de Qt :
+La production totale affichée est la somme des trois filières :
 
-1. Installer `aqtinstall` (via winget ou pip) :
-   ```powershell
-   winget install miurahr.aqtinstall
-   # ou via python : pip install aqtinstall
-   ```
+$$E_{total} = E_{éolien} + E_{solaire} + E_{nucléaire}$$
 
-2. Télécharger et installer **Qt 6.7.2 MinGW 64-bit** dans `C:\Qt` :
-   ```powershell
-   aqt install-qt windows desktop 6.7.2 win64_mingw -O C:\Qt
-   ```
-   *Note : Le fichier `CMakeLists.txt` détecte automatiquement `C:\Qt\6.7.2\mingw_64`.*
+Elle est calculée en Wh puis affichée dans l'unité la plus lisible (Wh, kWh, MWh, GWh ou TWh).
 
-3. *(Optionnel)* Si vous utilisez **MSYS2 MinGW-w64** au lieu de l'archive Qt :
-   ```bash
-   pacman -S mingw-w64-x86_64-gcc mingw-w64-x86_64-cmake mingw-w64-x86_64-ninja \
-             mingw-w64-x86_64-SDL mingw-w64-x86_64-SDL_ttf mingw-w64-x86_64-qt5-base mingw-w64-x86_64-qt5-tools
-   ```
+## Les trois modèles
 
-#### C. Installation d'Inno Setup 6 (pour l'installeur)
-```powershell
-winget install JRSoftware.InnoSetup
-# ou via chocolatey : choco install innosetup -y
-```
+### 1. Énergie éolienne
 
----
+La puissance du vent qui traverse le rotor est $\frac{1}{2}\,\rho\,S\,v^3$. Une éolienne ne peut pas tout récupérer : si elle arrêtait complètement l'air, plus rien ne passerait. La **limite de Betz** fixe le maximum théorique à $16/27$, soit environ 59,3 %. Les pertes de la chaîne de conversion (hélice, multiplicateur, alternateur, transformateur, lignes) réduisent encore ce rendement : le simulateur retient **70 % de la limite de Betz**.
 
-### 2. Compilation sous CLion (JetBrains)
+$$E_{éolien} = 0{,}70 \times \frac{16}{27} \times \frac{1}{2}\,\rho\,S\,v^3 \times n \times t$$
 
-Le projet est configuré pour une prise en charge immédiate sous CLion :
+| Symbole | Signification | Unité |
+|---|---|---|
+| $\rho$ | masse volumique de l'air : 1,23 (air sec à 15 °C) | kg/m³ |
+| $S$ | surface balayée par le rotor, $S = \pi (d/2)^2$ avec $d$ le diamètre | m² |
+| $v$ | vitesse moyenne du vent | m/s |
+| $n$ | nombre d'éoliennes | |
+| $t$ | temps de fonctionnement annuel | h |
 
-1. Lancer **CLion**.
-2. **Fichier** > **Ouvrir...** > Sélectionner le dossier racine du projet `TPE`.
-3. CLion charge le `CMakeLists.txt` et détecte automatiquement le compilateur MinGW inclus ainsi que l'installation Qt dans `C:/Qt/6.7.2/mingw_64`.
-   *(Si votre installation Qt est située dans un dossier personnalisé, ajoutez simplement `-DCMAKE_PREFIX_PATH=C:/chemin/vers/Qt` dans **Settings** > **Build, Execution, Deployment** > **CMake** > **CMake options**).*
-4. Cliquer sur **Build** (Marteau vert / `Ctrl+F9`) ou sur **Run** (`Shift+F10`).
-5. Les images et assets sont automatiquement copiés dans le dossier d'exécution (`cmake-build-debug-mingw`) lors de la compilation.
+### 2. Énergie solaire photovoltaïque
 
----
+$$E_{solaire} = S \times r \times H \times C_p$$
 
-### 3. Compilation en ligne de commande sous Windows (PowerShell)
+| Symbole | Signification | Unité |
+|---|---|---|
+| $S$ | surface du champ photovoltaïque | m² |
+| $r$ | rendement des modules (14 % par exemple) | % |
+| $H$ | ensoleillement annuel sur la surface inclinée (plus de 1 500 dans le sud de la France) | kWh/m² |
+| $C_p$ | coefficient de perte (couramment 0,75 à 0,80) | |
 
-En utilisant les outils fournis par CLion :
+Le coefficient de perte regroupe les pertes de l'installation : onduleurs (8 à 15 %), température (5 à 12 %), câbles et connexions (2 %), ombrages (0 à 50 % selon l'implantation), faible éclairement (3 à 7 %) et réflexion (environ 3 %). Avec $H$ en kWh/m², le résultat est en kWh.
 
-```powershell
-# 1. Configurer l'environnement PATH
-$env:PATH = "C:\Users\$env:USERNAME\AppData\Local\Programs\CLion\bin\mingw\bin;C:\Users\$env:USERNAME\AppData\Local\Programs\CLion\bin\ninja\win\x64;$env:PATH"
+### 3. Énergie nucléaire
 
-# 2. Configurer le projet avec CMake et Ninja
-& "C:\Users\$env:USERNAME\AppData\Local\Programs\CLion\bin\cmake\win\x64\bin\cmake.exe" `
-    -DCMAKE_BUILD_TYPE=Release `
-    -DCMAKE_MAKE_PROGRAM="C:/Users/$env:USERNAME/AppData/Local/Programs/CLion/bin/ninja/win/x64/ninja.exe" `
-    -G Ninja -S . -B build
+$$E_{nucléaire} = P \times n \times 7\,451{,}1$$
 
-# 3. Compiler l'exécutable
-cmake --build build --config Release
+| Symbole | Signification | Unité |
+|---|---|---|
+| $P$ | puissance moyenne d'un réacteur | MW |
+| $n$ | nombre de réacteurs (58 dans le parc français de 2014) | |
+| 7 451,1 | durée de fonctionnement annuelle : $24 \times 365{,}25 \times 0{,}85$ | h |
 
-# 4. Déployer les dépendances Qt avec windeployqt
-& "C:\Qt\6.7.2\mingw_64\bin\windeployqt.exe" --no-translations build/tpe.exe
+Le facteur 0,85 est le taux de disponibilité retenu : un réacteur est arrêté une partie de l'année pour maintenance et rechargement. Avec $P$ en MW, le résultat est en MWh.
 
-# 5. Lancer l'application
-.\build\tpe.exe
-```
+## Exemple : les valeurs par défaut
 
----
+Au lancement, le programme affiche **432,57 TWh**. Voici le détail :
 
-### 4. Compilation sous Linux (Ubuntu / Debian)
+| Filière | Paramètres par défaut | Production annuelle |
+|---|---|---|
+| Éolien | 100 éoliennes de 80 m de diamètre, vent de 8 m/s, 6 000 h | 0,39 TWh (environ 0,66 MW par éolienne) |
+| Solaire | 50 000 m², rendement 14 %, 1 500 kWh/m², $C_p$ = 0,75 | 0,008 TWh (7,9 GWh) |
+| Nucléaire | 58 réacteurs de 1 000 MW | 432,16 TWh |
+| **Total** | | **432,57 TWh** |
 
-```bash
-# 1. Installation des dépendances (Qt5 ou Qt6 et SDL 1.2)
-sudo apt-get update
-sudo apt-get install -y cmake ninja-build build-essential \
-    libsdl1.2-dev libsdl-ttf2.0-dev \
-    qtbase5-dev qttools5-dev-tools
+L'ordre de grandeur obtenu pour le nucléaire est proche de la production réelle du parc français à l'époque (un peu plus de 400 TWh par an).
 
-# (Si vous êtes sous Ubuntu 24.04+, le paquet équivalent est :)
-# sudo apt-get install -y cmake ninja-build build-essential libsdl1.2-compat-dev libsdl-ttf2.0-dev qt6-base-dev qt6-tools-dev
+## Hypothèses et limites
 
-# 2. Configuration et compilation
-cmake -B build -G Ninja -DCMAKE_BUILD_TYPE=Release
-cmake --build build --config Release
+Les modèles sont volontairement simples, pour rester au niveau d'un calcul faisable à la main :
 
-# 3. Lancer l'application
-./build/tpe
-```
+- **Vent constant** : la vitesse moyenne est traitée comme un vent de vitesse constante. Comme la puissance dépend de $v^3$, un vent réel, variable, ne produit pas la même énergie qu'un vent constant de même moyenne.
+- **Pas de puissance nominale** : une vraie éolienne ne démarre qu'à partir d'une vitesse minimale, plafonne à sa puissance nominale et s'arrête par vent trop fort. La formule, elle, croît sans limite avec $v^3$ : les grandes vitesses donnent des résultats irréalistes.
+- **Pas d'effet de parc** : les pertes dues au sillage des éoliennes voisines sont ignorées.
+- **Rendements fixes** : le facteur de 70 % (éolien), le coefficient de perte (solaire) et la disponibilité de 85 % (nucléaire) sont des moyennes, alors qu'ils varient selon l'installation et l'année.
+- **Énergie produite uniquement** : le programme ne traite ni la consommation, ni le stockage, ni l'intermittence, ni les coûts.
+- **Données de l'époque** : les données scientifiques (valeurs par défaut, rendements, parc de 58 réacteurs, part du nucléaire, cartes et sources des fiches) sont celles de 2014-2015. Elles n'ont pas été mises à jour depuis.
 
----
+Les quatre autres filières dessinées dans le paysage (thermique, géothermie, hydroélectricité, biomasse) sont présentées à titre indicatif, par une infobulle, sans calcul.
 
-### 5. Génération de l'Installeur Windows (Inno Setup)
+## Utilisation
 
-Pour générer l'installeur autonome `dist/tpe-setup-v1.5.exe` :
-
-```powershell
-# 1. Préparer le dossier de distribution portable
-New-Item -ItemType Directory -Force -Path dist\tpe-windows
-Copy-Item cmake-build-debug-mingw\tpe.exe dist\tpe-windows\ -Force
-Copy-Item cmake-build-debug-mingw\*.dll dist\tpe-windows\ -Force
-Copy-Item -Recurse -Force images dist\tpe-windows\
-Copy-Item -Recurse -Force assets dist\tpe-windows\
-Copy-Item -Recurse -Force examples dist\tpe-windows\
-Copy-Item -Recurse -Force cmake-build-debug-mingw\platforms dist\tpe-windows\
-Copy-Item LICENSE, OFL.txt, README.md dist\tpe-windows\ -Force
-
-# 2. Compiler l'installeur Inno Setup
-& "${env:LOCALAPPDATA}\Programs\Inno Setup 6\ISCC.exe" innosetup\tpe_setup.iss
-# Ou si installé dans Program Files :
-# & "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe" innosetup\tpe_setup.iss
-```
-
-L'installeur final est produit dans `dist/tpe-setup-v1.5.exe`.
-
----
-
-## Raccourcis et Commandes
+- **Paysage** : survoler ou cliquer une installation numérotée affiche sa description.
+- **Paramètres** : chaque modification à droite recalcule la production annuelle.
+- **Menu Calculs** : une fiche par filière simulée, avec la formule, ses hypothèses, ses sources et une carte (potentiel éolien, ensoleillement, centrales nucléaires françaises).
+- **Menu Fichiers** : enregistrer les paramètres dans un fichier texte et les recharger. Le dossier `examples/` contient des scénarios prêts à ouvrir.
 
 | Raccourci | Action |
 |---|---|
-| **F11** | Basculer en mode Plein Écran |
-| **Échap** | Quitter le mode Plein Écran |
-| **Ctrl+O** | Ouvrir un scénario de simulation (`.txt`) |
-| **Ctrl+S** | Sauvegarder les paramètres actuels (`.txt`) |
-| **Ctrl+Q** | Quitter l'application |
+| **F11** ou menu **Affichage > Plein écran** | Basculer en plein écran (l'image et le texte s'agrandissent) |
+| **Échap** | Quitter le plein écran |
+| **Ctrl+O** | Ouvrir un scénario (`.txt`) |
+| **Ctrl+S** | Enregistrer les paramètres (`.txt`) |
+| **Ctrl+Q** | Quitter |
 
 ---
 
-## Licence & Crédits
+# Partie 2 — Compiler le projet
 
-- **Code source** : [MIT License](LICENSE) — Créé par fromtherags en 2014.
-- **Polices de caractères** : [SIL Open Font License 1.1](OFL.txt) (Patrick Hand, Droid Sans).
-- **Ressources graphiques** : Fichiers d'origine avec mentions de nom remplacées par *Créé par fromtherags en 2014* et rendu uniformisé.
+Il faut un compilateur **C++17**, **CMake** (3.16 ou plus récent), **Ninja** et **Qt 6** avec les modules **Widgets** et **SVG**.
+
+## Linux (Ubuntu 24.04 ou plus récent)
+
+```bash
+sudo apt-get update
+sudo apt-get install -y cmake ninja-build build-essential qt6-base-dev libqt6svg6-dev libgl1-mesa-dev
+
+cmake -B build -G Ninja -DCMAKE_BUILD_TYPE=Release
+cmake --build build
+./build/tpe
+```
+
+## Windows
+
+### 1. Installer Qt
+
+Par exemple **Qt 6.7.2 MinGW 64 bits** avec `aqtinstall` :
+
+```powershell
+winget install miurahr.aqtinstall
+```
+
+```powershell
+aqt install-qt windows desktop 6.7.2 win64_mingw -O C:\Qt
+```
+
+Une installation dans `C:\Qt` est trouvée automatiquement. Pour un autre emplacement, passer `-DCMAKE_PREFIX_PATH=C:/chemin/vers/Qt` à CMake.
+
+### 2. Compiler
+
+**Avec CLion** (qui fournit le compilateur MinGW, CMake et Ninja) : ouvrir le dossier du projet, puis **Build** (`Ctrl+F9`) ou **Run** (`Shift+F10`).
+
+**En ligne de commande** (PowerShell), avec les outils de CLion :
+
+```powershell
+# Mettre le compilateur, Ninja, CMake et Qt dans le PATH
+$clion = "$env:LOCALAPPDATA\Programs\CLion\bin"
+$env:PATH = "$clion\mingw\bin;$clion\ninja\win\x64;$clion\cmake\win\x64\bin;C:\Qt\6.7.2\mingw_64\bin;$env:PATH"
+
+# Configurer et compiler
+cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release
+cmake --build build
+
+# Copier les bibliothèques Qt à côté de l'exécutable, puis lancer
+windeployqt --no-translations build\tpe.exe
+.\build\tpe.exe
+```
+
+## Versions prêtes à l'emploi
+
+À chaque push, [GitHub Actions](.github/workflows/ci.yml) compile le projet sous Linux et Windows et vérifie que l'application démarre. Pousser un tag `vX.Y.Z` publie une **Release GitHub** contenant l'archive Linux, le zip Windows portable et l'installeur Windows :
+
+```bash
+git tag v1.6.0
+git push origin v1.6.0
+```
+
+---
+
+## Licence
+
+Copyright © 2014-2026 fromtherags.
+
+Ce programme est un logiciel libre distribué sous la [licence publique générale GNU, version 3](LICENSE) (GPL 3). Il est fourni sans aucune garantie.
+
+Les sources des formules sont citées dans chaque fiche du menu **Calculs**.

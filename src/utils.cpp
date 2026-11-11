@@ -2,7 +2,6 @@
 #include <QCoreApplication>
 #include <QFileInfo>
 #include <QDir>
-#include <cstdio>
 
 QString getAssetPath(const QString &fileName)
 {
@@ -30,45 +29,6 @@ QString getAssetPath(const QString &fileName)
         if (QFileInfo::exists(candidate)) {
             return QDir::cleanPath(candidate);
         }
-    }
-
-    return fileName;
-}
-
-std::string getAssetPathStd(const std::string &fileName)
-{
-    FILE *f = std::fopen(fileName.c_str(), "rb");
-    if (f) {
-        std::fclose(f);
-        return fileName;
-    }
-
-    std::string candidate = "images/" + fileName;
-    f = std::fopen(candidate.c_str(), "rb");
-    if (f) {
-        std::fclose(f);
-        return candidate;
-    }
-
-    candidate = "assets/" + fileName;
-    f = std::fopen(candidate.c_str(), "rb");
-    if (f) {
-        std::fclose(f);
-        return candidate;
-    }
-
-    candidate = "../images/" + fileName;
-    f = std::fopen(candidate.c_str(), "rb");
-    if (f) {
-        std::fclose(f);
-        return candidate;
-    }
-
-    candidate = "../assets/" + fileName;
-    f = std::fopen(candidate.c_str(), "rb");
-    if (f) {
-        std::fclose(f);
-        return candidate;
     }
 
     return fileName;
